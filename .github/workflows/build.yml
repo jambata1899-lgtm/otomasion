@@ -1,4 +1,4 @@
-name: Final Dotnet Core Build for Windows Forms
+name: Final Dotnet Core Build for Windows Forms (64-bit) - Path Fix
 
 on:
   push:
@@ -14,30 +14,32 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       # 1. نصب .NET 8 SDK
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x' 
 
-      # 2. Restore Dependencies (با لحاظ کردن RuntimeIdentifier)
-      # *نکته کلیدی: پارامتر /p:RuntimeIdentifiers=win-x64 اضافه شد*
+      # 2. Restore Dependencies (با جستجوی عمومی فایل SLN)
+      # *توجه: از الگوی **/*.sln برای یافتن فایل Solution استفاده می کنیم.*
       - name: Restore dependencies for net8.0-windows (win-x64)
-        run: dotnet restore PaygirLettersApp.sln /p:TargetFramework=net8.0-windows /p:RuntimeIdentifiers=win-x64
+        run: dotnet restore **/*.sln /p:TargetFramework=net8.0-windows /p:RuntimeIdentifiers=win-x64
 
       # 3. Build پروژه
       - name: Build project
-        run: dotnet build PaygirLettersApp.sln --configuration Release /p:LangVersion=latest /p:TargetFramework=net8.0-windows --no-restore
+        # مطمئن می شویم از آخرین ورژن C# استفاده می شود
+        run: dotnet build **/*.sln --configuration Release /p:LangVersion=latest /p:TargetFramework=net8.0-windows --no-restore
 
-      # 4. Publish خروجی
+      # 4. Publish خروجی (انتشار نهایی برای 64-bit)
+      # در این مرحله باید مسیر دقیق را بدهیم، فرض می کنیم FinalDotnetCoreBuild/FinalDotnetCoreBuild.csproj درست است
       - name: Publish Release build
-        run: dotnet publish PaygirLettersApp/PaygirLettersApp.csproj --configuration Release /p:TargetFramework=net8.0-windows --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true --no-restore
+        run: dotnet publish FinalDotnetCoreBuild/FinalDotnetCoreBuild.csproj --configuration Release /p:TargetFramework=net8.0-windows --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true --no-restore
 
       # 5. Upload artifacts
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: PaygirLettersApp-Release
+          name: FinalDotnetCoreBuild-Release-x64
           path: ${{ github.workspace }}/artifacts
           retention-days: 5

@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Forms;
 
-namespace PaygirLettersApp
+namespace FinalDotnetCoreBuild
 {
     static class Program
     {

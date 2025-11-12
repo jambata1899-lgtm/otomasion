@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 
-namespace PaygirLettersApp.Helpers
+namespace FinalDotnetCoreBuild.Helpers
 {
     using static System.Environment;
     public static class FileAttachmentHelper

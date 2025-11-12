@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using PaygirLettersApp.Helpers;
+using FinalDotnetCoreBuild.Helpers;
 using System.Globalization;
 
-namespace PaygirLettersApp
+namespace FinalDotnetCoreBuild
 {
     public partial class LetterEditForm : Form
     {
@@ -28,7 +28,6 @@ namespace PaygirLettersApp
                 nudResponseDays.Value = existing.ResponseDays;
                 cmbStatus.SelectedItem = existing.Status.ToString();
                 txtNotes.Text = existing.Notes;
-                // attachments
                 lstAttachments.Items.Clear();
                 foreach(var a in existing.Attachments) lstAttachments.Items.Add(a);
             }

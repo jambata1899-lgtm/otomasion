@@ -1,20 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using System.Threading.Tasks;
 
-namespace PaygirLettersApp.Helpers
+namespace FinalDotnetCoreBuild.Helpers
 {
-    using PaygirLettersApp;
-    using static System.Environment;
-
+    using FinalDotnetCoreBuild;
     public static class NotificationHelper
     {
         public static bool IsWindows10OrGreater()
         {
-            // Simplified check
             return Environment.OSVersion.Version.Major >= 10;
         }
 
@@ -24,7 +19,6 @@ namespace PaygirLettersApp.Helpers
             {
                 try
                 {
-                    // Use ToastNotification (requires app identity for full features).
                     new Microsoft.Toolkit.Uwp.Notifications.ToastContentBuilder()
                         .AddText(title)
                         .AddText(message)
@@ -37,7 +31,6 @@ namespace PaygirLettersApp.Helpers
             }
             else
             {
-                // Windows 7 fallback
                 MessageBox.Show(message, title);
             }
         }

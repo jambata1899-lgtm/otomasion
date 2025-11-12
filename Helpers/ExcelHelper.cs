@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using ClosedXML.Excel;
 
-namespace PaygirLettersApp.Helpers
+namespace FinalDotnetCoreBuild.Helpers
 {
     using static System.Environment;
-    using PaygirLettersApp;
+    using FinalDotnetCoreBuild;
     public static class ExcelHelper
     {
         public static string GetDataPath()
@@ -29,7 +29,7 @@ namespace PaygirLettersApp.Helpers
             ws.Cell(1,8).Value = "DueDate";
             ws.Cell(1,9).Value = "Status";
             ws.Cell(1,10).Value = "Notes";
-            ws.Cell(1,11).Value = "Attachments"; // semicolon separated
+            ws.Cell(1,11).Value = "Attachments";
 
             int r = 2;
             foreach(var l in letters)
@@ -80,7 +80,7 @@ namespace PaygirLettersApp.Helpers
                     l.Attachments = string.IsNullOrWhiteSpace(attach) ? new List<string>() : new List<string>(attach.Split(';'));
                     outList.Add(l);
                 }
-                catch { /* best-effort parsing */ }
+                catch { }
                 row++;
             }
             return outList;

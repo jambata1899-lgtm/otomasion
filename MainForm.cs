@@ -4,9 +4,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using PaygirLettersApp.Helpers;
+using FinalDotnetCoreBuild.Helpers;
 
-namespace PaygirLettersApp
+namespace FinalDotnetCoreBuild
 {
     public partial class MainForm : Form
     {
@@ -26,26 +26,21 @@ namespace PaygirLettersApp
 
         private void MainForm_Load(object? sender, EventArgs e)
         {
-            // Load data
             _letters = ExcelHelper.Load();
             if (_letters.Any()) _nextId = _letters.Max(x => x.Id) + 1;
             RefreshGrid();
-            // Setup clock
             _clockTimer.Interval = 1000;
             _clockTimer.Tick += (s,ev) => UpdateClock();
             _clockTimer.Start();
             UpdateClock();
-            // Notifications: check every hour
             _notifyTimer.Interval = 60 * 60 * 1000;
             _notifyTimer.Tick += (s,ev) => NotificationHelper.CheckAndNotify(_letters);
             _notifyTimer.Start();
-            // Run initial notifications
             NotificationHelper.CheckAndNotify(_letters);
         }
 
         private void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
         {
-            // Auto-save
             ExcelHelper.Save(_letters);
         }
 
@@ -106,7 +101,6 @@ namespace PaygirLettersApp
             }
         }
 
-        // Helpers to convert to Persian date string
         private string ToPersianDateString(DateTime dt)
         {
             var y = _pc.GetYear(dt);
@@ -117,7 +111,6 @@ namespace PaygirLettersApp
 
         private DateTime ParsePersianDate(string persian)
         {
-            // expect yyyy/MM/dd
             var parts = persian.Split('/');
             if (parts.Length != 3) return DateTime.Now;
             try
@@ -130,7 +123,6 @@ namespace PaygirLettersApp
             catch { return DateTime.Now; }
         }
 
-        // UI event handlers
         private void btnAdd_Click(object sender, EventArgs e)
         {
             var form = new LetterEditForm(null, _letters.Select(x=>x.Recipient).Distinct().ToList());
@@ -140,7 +132,6 @@ namespace PaygirLettersApp
                 l.Id = _nextId++;
                 l.DueDate = l.SentDate.AddDays(l.ResponseDays);
                 _letters.Add(l);
-                // copy attachments
                 if (l.Attachments.Any())
                 {
                     FileAttachmentHelper.CopyAttachments(l.Id, l.Attachments);
@@ -161,7 +152,6 @@ namespace PaygirLettersApp
             {
                 var l = form.Letter;
                 l.DueDate = l.SentDate.AddDays(l.ResponseDays);
-                // copy attachments if any new full paths present
                 if (l.Attachments.Any(a=>!a.StartsWith(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),"PaygirLetters_Attachments"))))
                 {
                     FileAttachmentHelper.CopyAttachments(l.Id, l.Attachments);

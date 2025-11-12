@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Forms;
 
-namespace PaygirLettersApp
+namespace FinalDotnetCoreBuild
 {
     partial class MainForm
     {
@@ -28,7 +28,6 @@ namespace PaygirLettersApp
             this.Width = 1000;
             this.Height = 650;
             this.StartPosition = FormStartPosition.CenterScreen;
-            // color scheme
             this.BackColor = System.Drawing.Color.WhiteSmoke;
 
             dgvLetters = new DataGridView();
@@ -81,7 +80,6 @@ namespace PaygirLettersApp
             this.Controls.Add(lblDateTime);
             this.Controls.Add(lblDesigner);
 
-            // events
             btnAdd.Click += btnAdd_Click;
             btnEdit.Click += btnEdit_Click;
             btnDelete.Click += btnDelete_Click;
