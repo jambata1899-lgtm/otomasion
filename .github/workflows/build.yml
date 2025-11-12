@@ -16,26 +16,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. نصب .NET 8 SDK
-      - name: Setup .NET 8
-        uses: actions/setup-dotnet@v4
+      # 2. نصب .NET 8 SDK و MSBuild
+      - name: Setup MSBuild & .NET 8
+        uses: microsoft/setup-msbuild@v2 # استفاده از MSBuild
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-
+          
       # -----------------------------------------------------------
-      # 3. رفع خطای NU1102: افزودن Source گم شده (با حذف دستور تکراری)
+      # 3. FIX: رفع خطای NU1102: پیکربندی NuGet برای پکیج‌های گم شده
       # -----------------------------------------------------------
-      # استفاده از دستور ساده که خطای "already exists" را نادیده بگیرد
       - name: Configure NuGet Sources
-        # این سورس پکیج‌های توسعه ویندوز (مانند Microsoft.Toolkit) را پوشش می‌دهد
+        # اضافه کردن سورس های لازم
         run: |
           dotnet nuget add source "https://api.nuget.org/v3/index.json" --name "StandardNuGet"
           dotnet nuget add source "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json" --name "dotnet-tools"
 
       # 4. بازیابی وابستگی‌ها (Restore)
-      - name: Restore dependencies
-        # این Restore برای تمام فریم‌ورک‌های پروژه (net8.0-windows و net48) و runtime win-x64 اجرا می‌شود
-        run: dotnet restore FinalDotnetCoreBuild.sln /p:TargetFrameworks=net8.0-windows;net48 /p:RuntimeIdentifiers=win-x64
+      - name: Restore dependencies (using MSBuild)
+        # FIX: استفاده از MSBUILD برای حل خطای Syntax 'net48'
+        run: msbuild FinalDotnetCoreBuild.sln /t:Restore /p:Configuration=Release /p:TargetFrameworks=net8.0-windows;net48 /p:RuntimeIdentifiers=win-x64
 
       # 5. بیلد پروژه در حالت Release
       - name: Build project (Release)
@@ -44,7 +44,6 @@ jobs:
 
       # 6. انتشار خروجی نهایی برای ویندوز 64 بیت (Self-contained)
       - name: Publish Release build (x64)
-        # فقط فایل پروژه (csproj) را Publish می کنیم
         run: dotnet publish FinalDotnetCoreBuild.csproj --configuration Release /p:TargetFramework=net8.0-windows --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true --no-restore
 
       # 7. آپلود خروجی به عنوان Artifact
