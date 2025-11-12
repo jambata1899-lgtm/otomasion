@@ -1,0 +1,43 @@
+name: Final Dotnet Core Build for Windows Forms
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      # 1. نصب .NET 8 SDK
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x' 
+
+      # 2. Restore Dependencies (با لحاظ کردن RuntimeIdentifier)
+      # *نکته کلیدی: پارامتر /p:RuntimeIdentifiers=win-x64 اضافه شد*
+      - name: Restore dependencies for net8.0-windows (win-x64)
+        run: dotnet restore PaygirLettersApp.sln /p:TargetFramework=net8.0-windows /p:RuntimeIdentifiers=win-x64
+
+      # 3. Build پروژه
+      - name: Build project
+        run: dotnet build PaygirLettersApp.sln --configuration Release /p:LangVersion=latest /p:TargetFramework=net8.0-windows --no-restore
+
+      # 4. Publish خروجی
+      - name: Publish Release build
+        run: dotnet publish PaygirLettersApp/PaygirLettersApp.csproj --configuration Release /p:TargetFramework=net8.0-windows --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true --no-restore
+
+      # 5. Upload artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PaygirLettersApp-Release
+          path: ${{ github.workspace }}/artifacts
+          retention-days: 5
