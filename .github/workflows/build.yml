@@ -32,7 +32,11 @@ jobs:
         run: dotnet build **/*.sln --configuration Release /p:LangVersion=latest /p:TargetFramework=net8.0-windows --no-restore
 
       # 4. Publish خروجی (انتشار نهایی برای 64-bit)
+<<<<<<< HEAD
       # در این مرحله باید مسیر دقیق را بدهیم، فرض می کنیم FinalDotnetCoreBuild/FinalDotnetCoreBuild.csproj درست است
+=======
+      # در این مرحله باید مسیر دقیق را بدهیم، فرض می کنیم PaygirLettersApp/PaygirLettersApp.csproj درست است
+>>>>>>> 0e4b5981c81ddf2b27548d5acebc3d044f5f1b49
       - name: Publish Release build
         run: dotnet publish FinalDotnetCoreBuild/FinalDotnetCoreBuild.csproj --configuration Release /p:TargetFramework=net8.0-windows --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true --no-restore
 
@@ -40,6 +44,10 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
+<<<<<<< HEAD
           name: FinalDotnetCoreBuild-Release-x64
+=======
+          name: PaygirLettersApp-Release-x64
+>>>>>>> 0e4b5981c81ddf2b27548d5acebc3d044f5f1b49
           path: ${{ github.workspace }}/artifacts
           retention-days: 5
