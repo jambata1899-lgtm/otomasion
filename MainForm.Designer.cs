@@ -15,7 +15,7 @@ namespace FinalDotnetCoreBuild
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components!=null)) components.Dispose();
+            if (disposing && (components != null)) components.Dispose();
             base.Dispose(disposing);
         }
 
@@ -31,42 +31,42 @@ namespace FinalDotnetCoreBuild
             this.BackColor = System.Drawing.Color.WhiteSmoke;
 
             dgvLetters = new DataGridView();
-            dgvLetters.Anchor = AnchorStyles.Top|AnchorStyles.Bottom|AnchorStyles.Left|AnchorStyles.Right;
-            dgvLetters.Location = new System.Drawing.Point(12,12);
-            dgvLetters.Size = new System.Drawing.Size(960,480);
+            dgvLetters.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dgvLetters.Location = new System.Drawing.Point(12, 12);
+            dgvLetters.Size = new System.Drawing.Size(960, 480);
             dgvLetters.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvLetters.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvLetters.MultiSelect = false;
             dgvLetters.AllowUserToAddRows = false;
             dgvLetters.RowHeadersVisible = false;
-            dgvLetters.Columns.Add("Id","Id");
-            dgvLetters.Columns.Add("RowNumber","ردیف");
-            dgvLetters.Columns.Add("Subject","موضوع نامه");
-            dgvLetters.Columns.Add("Recipient","گیرنده");
-            dgvLetters.Columns.Add("LetterNumber","شماره نامه");
-            dgvLetters.Columns.Add("SentDate","تاریخ ارسال");
-            dgvLetters.Columns.Add("ResponseDays","فرصت (روز)");
-            dgvLetters.Columns.Add("DueDate","تاریخ سررسید");
-            dgvLetters.Columns.Add("Status","وضعیت");
-            dgvLetters.Columns.Add("Notes","توضیحات");
-            dgvLetters.Columns.Add("Attachments","پیوست‌ها");
+
+            dgvLetters.Columns.Add("RowNumber", "ردیف");
+            dgvLetters.Columns.Add("Subject", "موضوع نامه");
+            dgvLetters.Columns.Add("Recipient", "گیرنده");
+            dgvLetters.Columns.Add("LetterNumber", "شماره نامه");
+            dgvLetters.Columns.Add("SentDate", "تاریخ ارسال");
+            dgvLetters.Columns.Add("ResponseDays", "فرصت (روز)");
+            dgvLetters.Columns.Add("DueDate", "تاریخ سررسید");
+            dgvLetters.Columns.Add("Status", "وضعیت");
+            dgvLetters.Columns.Add("Notes", "توضیحات");
+            dgvLetters.Columns.Add("Attachments", "پیوست‌ها");
 
             this.Controls.Add(dgvLetters);
 
-            btnAdd = new Button(){ Text="افزودن نامه جدید", Left=12, Top=510, Width=140, Height=34};
-            btnEdit = new Button(){ Text="ویرایش", Left=160, Top=510, Width=100, Height=34};
-            btnDelete = new Button(){ Text="حذف", Left=270, Top=510, Width=100, Height=34};
-            btnSearch = new Button(){ Text="جستجو و فیلتر", Left=380, Top=510, Width=120, Height=34};
-            btnSaveExcel = new Button(){ Text="ذخیره در اکسل", Left=510, Top=510, Width=120, Height=34};
-            btnLoadExcel = new Button(){ Text="بارگذاری از اکسل", Left=640, Top=510, Width=140, Height=34};
+            btnAdd = new Button() { Text = "افزودن نامه جدید", Left = 12, Top = 510, Width = 140, Height = 34, Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
+            btnEdit = new Button() { Text = "ویرایش", Left = 160, Top = 510, Width = 100, Height = 34, Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
+            btnDelete = new Button() { Text = "حذف", Left = 270, Top = 510, Width = 100, Height = 34, Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
+            btnSearch = new Button() { Text = "جستجو و فیلتر", Left = 380, Top = 510, Width = 120, Height = 34, Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
+            btnSaveExcel = new Button() { Text = "ذخیره در اکسل", Left = 510, Top = 510, Width = 120, Height = 34, Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
+            btnLoadExcel = new Button() { Text = "بارگذاری از اکسل", Left = 640, Top = 510, Width = 140, Height = 34, Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
 
-            txtSearch = new TextBox(){ Left=800, Top=510, Width=170, Height=34, PlaceholderText="موضوع..."};
-            txtSearchRecipient = new TextBox(){ Left=800, Top=550, Width=170, Height=28, PlaceholderText="گیرنده..."};
-            cmbFilterStatus = new ComboBox(){ Left=640, Top=550, Width=140, Height=28, DropDownStyle=ComboBoxStyle.DropDownList};
-            cmbFilterStatus.Items.AddRange(new string[]{ "", "InProgress", "Answered", "NotAnswered" });
+            txtSearch = new TextBox() { Left = 800, Top = 510, Width = 170, Height = 34, PlaceholderText = "موضوع..." };
+            txtSearchRecipient = new TextBox() { Left = 800, Top = 550, Width = 170, Height = 28, PlaceholderText = "گیرنده..." };
+            cmbFilterStatus = new ComboBox() { Left = 640, Top = 550, Width = 140, Height = 28, DropDownStyle = ComboBoxStyle.DropDownList };
+            cmbFilterStatus.Items.AddRange(new string[] { "", "در حال پیگیری", "پاسخ داده شده", "پاسخ داده نشده" });
 
-            lblDateTime = new Label(){ Left=760, Top=590, AutoSize=true };
-            lblDesigner = new Label(){ Left=12, Top=590, AutoSize=true, Text="طراحی توسط پیمان بطحایی لو" };
+            lblDateTime = new Label() { Left = 760, Top = 590, AutoSize = true };
+            lblDesigner = new Label() { Left = 12, Top = 590, AutoSize = true, Text = "طراحی توسط پیمان بطحایی لو" };
 
             this.Controls.Add(btnAdd);
             this.Controls.Add(btnEdit);
