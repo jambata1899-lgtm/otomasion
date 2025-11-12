@@ -61,22 +61,24 @@ namespace FinalDotnetCoreBuild
         {
             dgvLetters.Rows.Clear();
             int rowNum = 1;
+
             foreach (var l in _letters)
             {
                 var statusText = GetPersianStatus(l.Status);
 
                 var rowIdx = dgvLetters.Rows.Add(
-                    rowNum++,
+                    rowNum.ToString(), // تبدیل عدد به رشته
                     l.Subject,
                     l.Recipient,
                     l.LetterNumber,
                     ToPersianDateString(l.SentDate),
-                    l.ResponseDays,
+                    l.ResponseDays.ToString(), // تبدیل عدد به رشته
                     ToPersianDateString(l.DueDate),
                     statusText,
                     l.Notes,
                     string.Join(";", l.Attachments ?? new List<string>())
                 );
+                rowNum++;
 
                 var row = dgvLetters.Rows[rowIdx];
                 ApplyRowColor(row, l);
@@ -220,17 +222,18 @@ namespace FinalDotnetCoreBuild
             foreach (var l in filtered)
             {
                 var rowIdx = dgvLetters.Rows.Add(
-                    rowNum++,
+                    rowNum.ToString(),
                     l.Subject,
                     l.Recipient,
                     l.LetterNumber,
                     ToPersianDateString(l.SentDate),
-                    l.ResponseDays,
+                    l.ResponseDays.ToString(),
                     ToPersianDateString(l.DueDate),
                     GetPersianStatus(l.Status),
                     l.Notes,
                     string.Join(";", l.Attachments ?? new List<string>())
                 );
+                rowNum++;
                 var row = dgvLetters.Rows[rowIdx];
                 ApplyRowColor(row, l);
             }
