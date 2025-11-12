@@ -24,28 +24,23 @@ jobs:
       # 2. پیکربندی NuGet برای پکیج‌های گم شده
       - name: Configure NuGet Sources
         run: |
-          dotnet nuget add source "https://api.nuget.org/v3/index.json" --name "StandardNuGet"
-          dotnet nuget add source "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json" --name "dotnet-tools"
+          dotnet nuget add source "[https://api.nuget.org/v3/index.json](https://api.nuget.org/v3/index.json)" --name "StandardNuGet"
+          dotnet nuget add source "[https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json](https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json)" --name "dotnet-tools"
 
       # 3. بازیابی وابستگی‌ها (Restore)
+      # این Restore فقط Target Framework های اولیه را اجرا می کند (احتمالاً net8.0)
       - name: Restore dependencies
         run: dotnet restore FinalDotnetCoreBuild.sln
         
       # -----------------------------------------------------------
-      # 4. بیلد اول: .NET Framework (حل مشکل MSB1006)
+      # 4. بیلد نهایی و انتشار (فقط برای net8.0-windows)
       # -----------------------------------------------------------
-      - name: Build Project for net48 (Compatibility)
-        # FIX: استفاده از یک Target Framework در هر دستور برای حل مشکل Syntax
-        run: dotnet build FinalDotnetCoreBuild.sln --configuration Release /p:TargetFramework=net48 /p:LangVersion=latest --no-restore
-
-      # -----------------------------------------------------------
-      # 5. بیلد دوم و انتشار: .NET 8 (برای ویژگی‌های مدرن و خروجی نهایی)
-      # -----------------------------------------------------------
+      # FIX: حذف بیلد جداگانه net48 که خطا می داد و فقط Publish کردن net8.0
       - name: Publish Release build (x64 Final)
-        # استفاده از Target Framework مدرن برای خروجی نهایی
-        run: dotnet publish FinalDotnetCoreBuild.csproj --configuration Release /p:TargetFramework=net8.0-windows --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true --no-restore
+        # TargetFramework=net8.0-windows برای پشتیبانی از ویژگی های مدرن شما (PlaceholderText)
+        run: dotnet publish FinalDotnetCoreBuild.csproj --configuration Release /p:TargetFramework=net8.0-windows /p:LangVersion=latest --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true --no-restore
 
-      # 6. آپلود خروجی به عنوان Artifact
+      # 5. آپلود خروجی به عنوان Artifact
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
