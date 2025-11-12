@@ -23,19 +23,17 @@ jobs:
 
       # 2. پیکربندی NuGet برای پکیج‌های گم شده
       - name: Configure NuGet Sources
+        # FIX: حذف براکت ها و پرانتزهای اضافی از آدرس
         run: |
-          dotnet nuget add source "[https://api.nuget.org/v3/index.json](https://api.nuget.org/v3/index.json)" --name "StandardNuGet"
-          dotnet nuget add source "[https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json](https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json)" --name "dotnet-tools"
-
+          dotnet nuget add source "https://api.nuget.org/v3/index.json" --name "StandardNuGet" --configfile nuget.config
+          dotnet nuget add source "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json" --name "dotnet-tools" --configfile nuget.config
+          
       # 3. بازیابی وابستگی‌ها (Restore)
-      # این Restore فقط Target Framework های اولیه را اجرا می کند (احتمالاً net8.0)
+      # استفاده از فایل پیکربندی NuGet جدید
       - name: Restore dependencies
-        run: dotnet restore FinalDotnetCoreBuild.sln
-        
-      # -----------------------------------------------------------
+        run: dotnet restore FinalDotnetCoreBuild.sln --configfile nuget.config
+
       # 4. بیلد نهایی و انتشار (فقط برای net8.0-windows)
-      # -----------------------------------------------------------
-      # FIX: حذف بیلد جداگانه net48 که خطا می داد و فقط Publish کردن net8.0
       - name: Publish Release build (x64 Final)
         # TargetFramework=net8.0-windows برای پشتیبانی از ویژگی های مدرن شما (PlaceholderText)
         run: dotnet publish FinalDotnetCoreBuild.csproj --configuration Release /p:TargetFramework=net8.0-windows /p:LangVersion=latest --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true --no-restore
