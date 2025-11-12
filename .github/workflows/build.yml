@@ -23,25 +23,25 @@ jobs:
         uses: actions/checkout@v4
         
       # 2. نصب .NET SDK
-      # از آخرین نسخه پایدار دات نت استفاده می کنیم
+      # ما به طور پیش فرض از دات نت 8 استفاده می کنیم که C# 12 را پشتیبانی می کند
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x' 
 
       # 3. Restore NuGet packages
-      # چون از dotnet استفاده می کنیم، از فایل Solution (.sln) برای Restore استفاده می کنیم
       - name: Restore dependencies
         run: dotnet restore PaygirLettersApp.sln
 
       # 4. Build پروژه در حالت Release
+      # اضافه کردن /p:LangVersion=latest برای اجبار به استفاده از آخرین نسخه C#
       - name: Build project
-        run: dotnet build PaygirLettersApp.sln --configuration Release --no-restore
+        run: dotnet build PaygirLettersApp.sln --configuration Release /p:LangVersion=latest --no-restore
 
       # 5. Publish خروجی (ایجاد فایل های قابل اجرا)
-      # برای برنامه های دسکتاپ Windows Forms یا WPF که نیاز به فایل EXE دارند
+      # اضافه کردن /p:LangVersion=latest
       - name: Publish Release build
-        run: dotnet publish PaygirLettersApp/PaygirLettersApp.csproj --configuration Release --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true
+        run: dotnet publish PaygirLettersApp/PaygirLettersApp.csproj --configuration Release /p:LangVersion=latest --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true
 
       # 6. Upload artifacts (برای دانلود فایل EXE از GitHub Actions)
       - name: Upload build artifacts
