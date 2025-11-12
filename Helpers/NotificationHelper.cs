@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using Microsoft.Toolkit.Uwp.Notifications; // Ensure this line exists
 
 namespace FinalDotnetCoreBuild.Helpers
 {
@@ -19,13 +20,17 @@ namespace FinalDotnetCoreBuild.Helpers
             {
                 try
                 {
-                    new Microsoft.Toolkit.Uwp.Notifications.ToastContentBuilder()
+                    // FIX: متد Show() را با ساخت یک ToastNotification جدید و سپس نمایش آن جایگزین می کنیم.
+                    var builder = new ToastContentBuilder()
                         .AddText(title)
-                        .AddText(message)
-                        .Show();
+                        .AddText(message);
+                        
+                    // ساخت شیء اعلان و نمایش آن
+                    new Microsoft.Toolkit.Uwp.Notifications.ToastNotification(builder.GetContent()).Show();
                 }
                 catch
                 {
+                    // در صورت شکست در نمایش اعلان مدرن، به MessageBox باز می‌گردد
                     MessageBox.Show(message, title);
                 }
             }
