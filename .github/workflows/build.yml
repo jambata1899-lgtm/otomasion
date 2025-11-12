@@ -21,24 +21,28 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # 2. پیکربندی NuGet برای پکیج‌های گم شده
+      # -----------------------------------------------------------
+      # 2. FIX: ایجاد فایل nuget.config (برای رفع خطای "File does not exist")
+      # -----------------------------------------------------------
+      - name: Create Empty NuGet Config
+        # این دستور یک فایل nuget.config خالی در ریشه مخزن ایجاد می کند
+        run: echo "<configuration></configuration>" > nuget.config
+
+      # 3. پیکربندی NuGet برای پکیج‌های گم شده
       - name: Configure NuGet Sources
-        # FIX: حذف براکت ها و پرانتزهای اضافی از آدرس
         run: |
-          dotnet nuget add source "https://api.nuget.org/v3/index.json" --name "StandardNuGet" --configfile nuget.config
-          dotnet nuget add source "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json" --name "dotnet-tools" --configfile nuget.config
+          dotnet nuget add source "[https://api.nuget.org/v3/index.json](https://api.nuget.org/v3/index.json)" --name "StandardNuGet" --configfile nuget.config
+          dotnet nuget add source "[https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json](https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json)" --name "dotnet-tools" --configfile nuget.config
           
-      # 3. بازیابی وابستگی‌ها (Restore)
-      # استفاده از فایل پیکربندی NuGet جدید
+      # 4. بازیابی وابستگی‌ها (Restore)
       - name: Restore dependencies
         run: dotnet restore FinalDotnetCoreBuild.sln --configfile nuget.config
 
-      # 4. بیلد نهایی و انتشار (فقط برای net8.0-windows)
+      # 5. بیلد نهایی و انتشار (فقط برای net8.0-windows)
       - name: Publish Release build (x64 Final)
-        # TargetFramework=net8.0-windows برای پشتیبانی از ویژگی های مدرن شما (PlaceholderText)
         run: dotnet publish FinalDotnetCoreBuild.csproj --configuration Release /p:TargetFramework=net8.0-windows /p:LangVersion=latest --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true --no-restore
 
-      # 5. آپلود خروجی به عنوان Artifact
+      # 6. آپلود خروجی به عنوان Artifact
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
