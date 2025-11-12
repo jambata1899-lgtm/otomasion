@@ -12,41 +12,43 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # 1. دریافت سورس از ریپازیتوری
+      # 1. دریافت سورس و نصب دات‌نت
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. نصب .NET 8 SDK
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      # 3. FIX: رفع خطای NU1102: پیکربندی NuGet برای پکیج‌های گم شده
+      # 2. پیکربندی NuGet برای پکیج‌های گم شده
       - name: Configure NuGet Sources
-        # اضافه کردن سورس های لازم
         run: |
           dotnet nuget add source "https://api.nuget.org/v3/index.json" --name "StandardNuGet"
           dotnet nuget add source "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json" --name "dotnet-tools"
 
-      # 4. بازیابی وابستگی‌ها (Restore)
+      # 3. بازیابی وابستگی‌ها (Restore)
       - name: Restore dependencies
-        # FIX: حذف TargetFrameworks از اینجا برای جلوگیری از خطای Syntax
         run: dotnet restore FinalDotnetCoreBuild.sln
+        
+      # -----------------------------------------------------------
+      # 4. بیلد اول: .NET Framework (حل مشکل MSB1006)
+      # -----------------------------------------------------------
+      - name: Build Project for net48 (Compatibility)
+        # FIX: استفاده از یک Target Framework در هر دستور برای حل مشکل Syntax
+        run: dotnet build FinalDotnetCoreBuild.sln --configuration Release /p:TargetFramework=net48 /p:LangVersion=latest --no-restore
 
-      # 5. بیلد پروژه در حالت Release
-      - name: Build project (Release)
-        # TargetFrameworks و LangVersion برای حل مشکلات کدنویسی شما در اینجا به کار می رود.
-        run: dotnet build FinalDotnetCoreBuild.sln --configuration Release /p:LangVersion=latest /p:TargetFrameworks="net8.0-windows;net48" --no-restore
-
-      # 6. انتشار خروجی نهایی برای ویندوز 64 بیت (Self-contained)
+      # -----------------------------------------------------------
+      # 5. بیلد دوم و انتشار: .NET 8 (برای ویژگی‌های مدرن و خروجی نهایی)
+      # -----------------------------------------------------------
       - name: Publish Release build (x64 Final)
+        # استفاده از Target Framework مدرن برای خروجی نهایی
         run: dotnet publish FinalDotnetCoreBuild.csproj --configuration Release /p:TargetFramework=net8.0-windows --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true --no-restore
 
-      # 7. آپلود خروجی به عنوان Artifact
+      # 6. آپلود خروجی به عنوان Artifact
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
-        with: # <--- خطای YAML در اینجا رفع شد (با تورفتگی مناسب)
+        with:
           name: FinalDotnetCoreBuild-Release-x64
           path: ${{ github.workspace }}/artifacts
           retention-days: 5
