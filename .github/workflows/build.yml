@@ -1,4 +1,4 @@
-name: Final Dotnet Core Build for Windows Forms (64-bit)
+name: Final Dotnet Core Build for Windows Forms (64-bit) - Path Fix
 
 on:
   push:
@@ -21,20 +21,19 @@ jobs:
         with:
           dotnet-version: '8.0.x' 
 
-      # 2. Restore Dependencies (با لحاظ کردن RuntimeIdentifier 64-bit)
-      # *توجه: مسیر فایل PaygirLettersApp.sln را فرض کردیم که در پوشه دیگری است*
+      # 2. Restore Dependencies (با جستجوی عمومی فایل SLN)
+      # *توجه: از الگوی **/*.sln برای یافتن فایل Solution استفاده می کنیم.*
       - name: Restore dependencies for net8.0-windows (win-x64)
-        # فرض می کنیم فایل SLN در ریشه نیست و باید آن را با الگوی ** پیدا کنیم
-        run: dotnet restore PaygirLettersApp/PaygirLettersApp.sln /p:TargetFramework=net8.0-windows /p:RuntimeIdentifiers=win-x64
+        run: dotnet restore **/*.sln /p:TargetFramework=net8.0-windows /p:RuntimeIdentifiers=win-x64
 
       # 3. Build پروژه
       - name: Build project
         # مطمئن می شویم از آخرین ورژن C# استفاده می شود
-        run: dotnet build PaygirLettersApp/PaygirLettersApp.sln --configuration Release /p:LangVersion=latest /p:TargetFramework=net8.0-windows --no-restore
+        run: dotnet build **/*.sln --configuration Release /p:LangVersion=latest /p:TargetFramework=net8.0-windows --no-restore
 
       # 4. Publish خروجی (انتشار نهایی برای 64-bit)
+      # در این مرحله باید مسیر دقیق را بدهیم، فرض می کنیم PaygirLettersApp/PaygirLettersApp.csproj درست است
       - name: Publish Release build
-        # *توجه: مسیردهی برای پروژه به درستی انجام شد*
         run: dotnet publish PaygirLettersApp/PaygirLettersApp.csproj --configuration Release /p:TargetFramework=net8.0-windows --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true --no-restore
 
       # 5. Upload artifacts
