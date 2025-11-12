@@ -11,7 +11,6 @@ on:
 
 jobs:
   build:
-    # ما در حال استفاده از win-x64 برای Publish هستیم، پس از ویندوز استفاده می کنیم
     runs-on: windows-latest
 
     steps:
@@ -23,16 +22,20 @@ jobs:
         with:
           dotnet-version: '8.0.x' 
 
+      # 3. Restore NuGet packages
+      # انتقال پارامترهای فریمورک و زبان به مرحله Restore برای هماهنگی
       - name: Restore dependencies
-        run: dotnet restore PaygirLettersApp.sln
+        run: dotnet restore PaygirLettersApp.sln /p:LangVersion=latest /p:TargetFramework=net8.0-windows
 
       # 4. Build پروژه
+      # نیازی به تکرار TargetFramework و LangVersion در اینجا نیست
       - name: Build project
-        run: dotnet build PaygirLettersApp.sln --configuration Release /p:LangVersion=latest /p:TargetFramework=net8.0-windows --no-restore
+        run: dotnet build PaygirLettersApp.sln --configuration Release --no-restore
 
       # 5. Publish خروجی
+      # برای Publish نهایی نیاز است پارامتر TargetFramework مجددا تعریف شود
       - name: Publish Release build
-        run: dotnet publish PaygirLettersApp/PaygirLettersApp.csproj --configuration Release /p:LangVersion=latest /p:TargetFramework=net8.0-windows --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true
+        run: dotnet publish PaygirLettersApp/PaygirLettersApp.csproj --configuration Release /p:TargetFramework=net8.0-windows --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true
 
       # 6. Upload artifacts
       - name: Upload build artifacts
