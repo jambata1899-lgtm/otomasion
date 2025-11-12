@@ -1,4 +1,4 @@
-name: Final Dotnet Core Build for Windows Forms (64-bit) - Final
+name: Final Dotnet Core Build for Windows Forms (64-bit) - Final Fix
 
 on:
   push:
@@ -23,21 +23,24 @@ jobs:
           dotnet-version: '8.0.x'
 
       # -----------------------------------------------------------
-      # 3. بازیابی وابستگی‌ها (Restore) - استفاده از نام فایل تصحیح شده
+      # 3. رفع خطای NU1102: افزودن Source گم شده (برای Microsoft.Toolkit.Uwp.Notifications)
       # -----------------------------------------------------------
+      - name: Add Missing NuGet Source
+        run: dotnet nuget add source "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json" --name "dotnet-tools"
+
+      # 4. بازیابی وابستگی‌ها (Restore) - استفاده از نام فایل تصحیح شده
       - name: Restore dependencies
         run: dotnet restore FinalDotnetCoreBuild.sln /p:TargetFramework=net8.0-windows /p:RuntimeIdentifiers=win-x64
 
-      # 4. بیلد پروژه در حالت Release
+      # 5. بیلد پروژه در حالت Release
       - name: Build project (Release)
         run: dotnet build FinalDotnetCoreBuild.sln --configuration Release /p:LangVersion=latest /p:TargetFramework=net8.0-windows --no-restore
 
-      # 5. انتشار خروجی نهایی برای ویندوز 64 بیت (Self-contained)
-      # استفاده از نام فایل پروژه (csproj)
+      # 6. انتشار خروجی نهایی برای ویندوز 64 بیت (Self-contained)
       - name: Publish Release build (x64)
         run: dotnet publish FinalDotnetCoreBuild.csproj --configuration Release /p:TargetFramework=net8.0-windows --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true --no-restore
 
-      # 6. آپلود خروجی به عنوان Artifact
+      # 7. آپلود خروجی به عنوان Artifact
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
