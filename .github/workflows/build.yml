@@ -1,49 +1,40 @@
 name: Build PaygirLettersApp (CI/CD)
 
 on:
-  # در زمان پوش شدن کد به شاخه main
   push:
     branches:
       - main
-  # در زمان ایجاد Pull Request برای شاخه main
   pull_request:
     branches:
       - main
-  # امکان اجرای دستی Workflow
   workflow_dispatch:
 
 jobs:
   build:
-    # برای پروژه های ویندوز فرم یا WPF از windows-latest استفاده می کنیم
+    # ما در حال استفاده از win-x64 برای Publish هستیم، پس از ویندوز استفاده می کنیم
     runs-on: windows-latest
 
     steps:
-      # 1. Checkout کد
       - name: Checkout repository
         uses: actions/checkout@v4
         
-      # 2. نصب .NET SDK
-      # ما به طور پیش فرض از دات نت 8 استفاده می کنیم که C# 12 را پشتیبانی می کند
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x' 
 
-      # 3. Restore NuGet packages
       - name: Restore dependencies
         run: dotnet restore PaygirLettersApp.sln
 
-      # 4. Build پروژه در حالت Release
-      # اضافه کردن /p:LangVersion=latest برای اجبار به استفاده از آخرین نسخه C#
+      # 4. Build پروژه
       - name: Build project
-        run: dotnet build PaygirLettersApp.sln --configuration Release /p:LangVersion=latest --no-restore
+        run: dotnet build PaygirLettersApp.sln --configuration Release /p:LangVersion=latest /p:TargetFramework=net8.0-windows --no-restore
 
-      # 5. Publish خروجی (ایجاد فایل های قابل اجرا)
-      # اضافه کردن /p:LangVersion=latest
+      # 5. Publish خروجی
       - name: Publish Release build
-        run: dotnet publish PaygirLettersApp/PaygirLettersApp.csproj --configuration Release /p:LangVersion=latest --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true
+        run: dotnet publish PaygirLettersApp/PaygirLettersApp.csproj --configuration Release /p:LangVersion=latest /p:TargetFramework=net8.0-windows --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true
 
-      # 6. Upload artifacts (برای دانلود فایل EXE از GitHub Actions)
+      # 6. Upload artifacts
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
