@@ -40,4 +40,4 @@ jobs:
         with:
           name: PaygirLettersApp-Release
           path: ${{ github.workspace }}/artifacts
-          retention-days: 5
+          retention-days: 5 
