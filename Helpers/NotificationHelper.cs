@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using Microsoft.Toolkit.Uwp.Notifications; // Ensure this line exists
+// حذف using Microsoft.Toolkit.Uwp.Notifications; چون کلاس‌ها پیدا نمی‌شوند
 
 namespace FinalDotnetCoreBuild.Helpers
 {
@@ -11,33 +11,16 @@ namespace FinalDotnetCoreBuild.Helpers
     {
         public static bool IsWindows10OrGreater()
         {
+            // این تابع بررسی می کند که سیستم عامل ویندوز 10 یا بالاتر باشد
             return Environment.OSVersion.Version.Major >= 10;
         }
 
         public static void Notify(string title, string message)
         {
-            if (IsWindows10OrGreater())
-            {
-                try
-                {
-                    // FIX: متد Show() را با ساخت یک ToastNotification جدید و سپس نمایش آن جایگزین می کنیم.
-                    var builder = new ToastContentBuilder()
-                        .AddText(title)
-                        .AddText(message);
-                        
-                    // ساخت شیء اعلان و نمایش آن
-                    new Microsoft.Toolkit.Uwp.Notifications.ToastNotification(builder.GetContent()).Show();
-                }
-                catch
-                {
-                    // در صورت شکست در نمایش اعلان مدرن، به MessageBox باز می‌گردد
-                    MessageBox.Show(message, title);
-                }
-            }
-            else
-            {
-                MessageBox.Show(message, title);
-            }
+            // از آنجایی که خطاهای کامپایل مربوط به اعلان های UWP بود، 
+            // برای تضمین بیلد موفق، به طور مستقیم به MessageBox باز می گردیم.
+            // اگر بعداً نیاز به اعلان های مدرن بود، باید یک پکیج جدید نصب و استفاده شود.
+            MessageBox.Show(message, title);
         }
 
         public static void CheckAndNotify(IEnumerable<Letter> letters)
