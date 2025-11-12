@@ -23,23 +23,24 @@ jobs:
           dotnet-version: '8.0.x'
 
       # -----------------------------------------------------------
-      # 3. FIX: رفع خطای NU1102 با اضافه کردن سورس ویندوز دسکتاپ
+      # 3. رفع خطای NU1102: افزودن Source گم شده (با حذف دستور تکراری)
       # -----------------------------------------------------------
-      - name: Add Missing NuGet Source (Windows Toolkit)
+      # استفاده از دستور ساده که خطای "already exists" را نادیده بگیرد
+      - name: Configure NuGet Sources
         # این سورس پکیج‌های توسعه ویندوز (مانند Microsoft.Toolkit) را پوشش می‌دهد
-        run: dotnet nuget add source "https://api.nuget.org/v3/index.json" --name "MicrosoftDeveloperFeed"
+        run: |
+          dotnet nuget add source "https://api.nuget.org/v3/index.json" --name "StandardNuGet"
+          dotnet nuget add source "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json" --name "dotnet-tools"
 
       # 4. بازیابی وابستگی‌ها (Restore)
       - name: Restore dependencies
-        # FIX: Restore ساده برای جلوگیری از خطای سینتکس 'net48'
-        # این مرحله تمام فریم‌ورک‌های پروژه (net8.0-windows و net48) را از درون csproj می‌خواند.
-        run: dotnet restore FinalDotnetCoreBuild.sln
+        # این Restore برای تمام فریم‌ورک‌های پروژه (net8.0-windows و net48) و runtime win-x64 اجرا می‌شود
+        run: dotnet restore FinalDotnetCoreBuild.sln /p:TargetFrameworks=net8.0-windows;net48 /p:RuntimeIdentifiers=win-x64
 
       # 5. بیلد پروژه در حالت Release
       - name: Build project (Release)
         # LangVersion=latest برای پشتیبانی از ویژگی های مدرن C# (PlaceholderText)
-        # TargetFrameworks در اینجا برای اطمینان از ساخت دو فریم‌ورک استفاده می‌شود.
-        run: dotnet build FinalDotnetCoreBuild.sln --configuration Release /p:LangVersion=latest /p:TargetFrameworks=net8.0-windows;net48 --no-restore
+        run: dotnet build FinalDotnetCoreBuild.sln --configuration Release /p:LangVersion=latest --no-restore
 
       # 6. انتشار خروجی نهایی برای ویندوز 64 بیت (Self-contained)
       - name: Publish Release build (x64)
