@@ -22,27 +22,23 @@ jobs:
           dotnet-version: '8.0.x'
 
       # -----------------------------------------------------------
-      # 2. FIX: ایجاد فایل nuget.config (برای رفع خطای "File does not exist")
+      # 2. حذف تمام خطاهای NU1301 با پاکسازی Source
       # -----------------------------------------------------------
-      - name: Create Empty NuGet Config
-        # این دستور یک فایل nuget.config خالی در ریشه مخزن ایجاد می کند
-        run: echo "<configuration></configuration>" > nuget.config
+      - name: Clean NuGet Sources
+        # این دستور، فایل پیکربندی NuGet قدیمی را حذف می کند تا فقط از Source های پیش فرض استفاده شود
+        run: dotnet nuget locals all --clear
 
-      # 3. پیکربندی NuGet برای پکیج‌های گم شده
-      - name: Configure NuGet Sources
-        run: |
-          dotnet nuget add source "[https://api.nuget.org/v3/index.json](https://api.nuget.org/v3/index.json)" --name "StandardNuGet" --configfile nuget.config
-          dotnet nuget add source "[https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json](https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json)" --name "dotnet-tools" --configfile nuget.config
-          
-      # 4. بازیابی وابستگی‌ها (Restore)
+      # 3. بازیابی وابستگی‌ها (Restore)
+      # Restore ساده، پس از پاکسازی cache
       - name: Restore dependencies
-        run: dotnet restore FinalDotnetCoreBuild.sln --configfile nuget.config
-
-      # 5. بیلد نهایی و انتشار (فقط برای net8.0-windows)
+        run: dotnet restore FinalDotnetCoreBuild.sln
+        
+      # 4. بیلد نهایی و انتشار (فقط برای net8.0-windows)
+      # FIX: حذف بیلد دوگانه، فقط بیلد net8.0
       - name: Publish Release build (x64 Final)
         run: dotnet publish FinalDotnetCoreBuild.csproj --configuration Release /p:TargetFramework=net8.0-windows /p:LangVersion=latest --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true --no-restore
 
-      # 6. آپلود خروجی به عنوان Artifact
+      # 5. آپلود خروجی به عنوان Artifact
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
