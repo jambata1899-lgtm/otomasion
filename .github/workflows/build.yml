@@ -16,16 +16,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. نصب .NET 8 SDK و MSBuild
-      - name: Setup MSBuild & .NET 8
-        uses: microsoft/setup-msbuild@v2 # استفاده از MSBuild
-      - uses: actions/setup-dotnet@v4
+      # 2. نصب .NET 8 SDK
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-          
-      # -----------------------------------------------------------
+
       # 3. FIX: رفع خطای NU1102: پیکربندی NuGet برای پکیج‌های گم شده
-      # -----------------------------------------------------------
       - name: Configure NuGet Sources
         # اضافه کردن سورس های لازم
         run: |
@@ -33,14 +30,14 @@ jobs:
           dotnet nuget add source "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json" --name "dotnet-tools"
 
       # 4. بازیابی وابستگی‌ها (Restore)
-      - name: Restore dependencies (using MSBuild)
-        # FIX: استفاده از MSBUILD برای حل خطای Syntax 'net48'
-        run: msbuild FinalDotnetCoreBuild.sln /t:Restore /p:Configuration=Release /p:TargetFrameworks=net8.0-windows;net48 /p:RuntimeIdentifiers=win-x64
+      - name: Restore dependencies (Simple)
+        # FIX: حذف TargetFrameworks و RuntimeIdentifiers از اینجا برای جلوگیری از خطای Syntax
+        run: dotnet restore FinalDotnetCoreBuild.sln
 
       # 5. بیلد پروژه در حالت Release
       - name: Build project (Release)
-        # LangVersion=latest برای پشتیبانی از ویژگی های مدرن C# (PlaceholderText)
-        run: dotnet build FinalDotnetCoreBuild.sln --configuration Release /p:LangVersion=latest --no-restore
+        # TargetFrameworks و LangVersion برای حل مشکلات کدنویسی شما در اینجا به کار می رود.
+        run: dotnet build FinalDotnetCoreBuild.sln --configuration Release /p:LangVersion=latest /p:TargetFrameworks="net8.0-windows;net48" --no-restore
 
       # 6. انتشار خروجی نهایی برای ویندوز 64 بیت (Self-contained)
       - name: Publish Release build (x64)
