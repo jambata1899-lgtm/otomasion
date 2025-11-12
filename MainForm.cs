@@ -29,13 +29,16 @@ namespace FinalDotnetCoreBuild
             _letters = ExcelHelper.Load();
             if (_letters.Any()) _nextId = _letters.Max(x => x.Id) + 1;
             RefreshGrid();
+
             _clockTimer.Interval = 1000;
-            _clockTimer.Tick += (s,ev) => UpdateClock();
+            _clockTimer.Tick += (s, ev) => UpdateClock();
             _clockTimer.Start();
             UpdateClock();
+
             _notifyTimer.Interval = 60 * 60 * 1000;
-            _notifyTimer.Tick += (s,ev) => NotificationHelper.CheckAndNotify(_letters);
+            _notifyTimer.Tick += (s, ev) => NotificationHelper.CheckAndNotify(_letters);
             _notifyTimer.Start();
+
             NotificationHelper.CheckAndNotify(_letters);
         }
 
@@ -57,47 +60,59 @@ namespace FinalDotnetCoreBuild
         private void RefreshGrid()
         {
             dgvLetters.Rows.Clear();
-            foreach(var l in _letters)
+            int rowNum = 1;
+            foreach (var l in _letters)
             {
+                var statusText = GetPersianStatus(l.Status);
+
                 var rowIdx = dgvLetters.Rows.Add(
-                    l.Id,
-                    l.RowNumber,
+                    rowNum++,
                     l.Subject,
                     l.Recipient,
                     l.LetterNumber,
                     ToPersianDateString(l.SentDate),
                     l.ResponseDays,
                     ToPersianDateString(l.DueDate),
-                    l.Status.ToString(),
+                    statusText,
                     l.Notes,
                     string.Join(";", l.Attachments ?? new List<string>())
                 );
+
                 var row = dgvLetters.Rows[rowIdx];
                 ApplyRowColor(row, l);
             }
         }
 
+        private string GetPersianStatus(LetterStatus status)
+        {
+            return status switch
+            {
+                LetterStatus.InProgress => "در حال پیگیری",
+                LetterStatus.Answered => "پاسخ داده شده",
+                LetterStatus.NotAnswered => "پاسخ داده نشده",
+                _ => ""
+            };
+        }
+
         private void ApplyRowColor(DataGridViewRow row, Letter l)
         {
+            var daysLeft = (l.DueDate.Date - DateTime.Now.Date).TotalDays;
+
             if (l.Status == LetterStatus.Answered)
             {
                 row.DefaultCellStyle.BackColor = System.Drawing.Color.LightGreen;
             }
+            else if (daysLeft < 0)
+            {
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightCoral;
+            }
+            else if (daysLeft <= 3)
+            {
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.Khaki;
+            }
             else
             {
-                var daysLeft = (l.DueDate.Date - DateTime.Now.Date).TotalDays;
-                if (daysLeft < 0)
-                {
-                    row.DefaultCellStyle.BackColor = System.Drawing.Color.LightCoral;
-                }
-                else if (daysLeft <= 3)
-                {
-                    row.DefaultCellStyle.BackColor = System.Drawing.Color.LightYellow;
-                }
-                else
-                {
-                    row.DefaultCellStyle.BackColor = System.Drawing.Color.White;
-                }
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.White;
             }
         }
 
@@ -118,58 +133,65 @@ namespace FinalDotnetCoreBuild
                 int y = int.Parse(parts[0]);
                 int m = int.Parse(parts[1]);
                 int d = int.Parse(parts[2]);
-                return _pc.ToDateTime(y, m, d, 0,0,0,0);
+                return _pc.ToDateTime(y, m, d, 0, 0, 0, 0);
             }
             catch { return DateTime.Now; }
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
         {
-            var form = new LetterEditForm(null, _letters.Select(x=>x.Recipient).Distinct().ToList());
+            var form = new LetterEditForm(null, _letters.Select(x => x.Recipient).Distinct().ToList());
             if (form.ShowDialog() == DialogResult.OK)
             {
                 var l = form.Letter;
                 l.Id = _nextId++;
+                l.RowNumber = _letters.Count + 1; // ردیف خودکار
                 l.DueDate = l.SentDate.AddDays(l.ResponseDays);
+
                 _letters.Add(l);
+
                 if (l.Attachments.Any())
                 {
                     FileAttachmentHelper.CopyAttachments(l.Id, l.Attachments);
                     l.Attachments = FileAttachmentHelper.GetSavedAttachments(l.Id);
                 }
+
                 RefreshGrid();
             }
         }
 
         private void btnEdit_Click(object sender, EventArgs e)
         {
-            if (dgvLetters.SelectedRows.Count==0) return;
-            var id = (int)dgvLetters.SelectedRows[0].Cells[0].Value;
-            var letter = _letters.FirstOrDefault(x=>x.Id==id);
-            if (letter==null) return;
-            var form = new LetterEditForm(letter, _letters.Select(x=>x.Recipient).Distinct().ToList());
-            if (form.ShowDialog()==DialogResult.OK)
+            if (dgvLetters.SelectedRows.Count == 0) return;
+            var rowIndex = dgvLetters.SelectedRows[0].Index;
+            var letter = _letters[rowIndex];
+            if (letter == null) return;
+
+            var form = new LetterEditForm(letter, _letters.Select(x => x.Recipient).Distinct().ToList());
+            if (form.ShowDialog() == DialogResult.OK)
             {
                 var l = form.Letter;
                 l.DueDate = l.SentDate.AddDays(l.ResponseDays);
-                if (l.Attachments.Any(a=>!a.StartsWith(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),"PaygirLetters_Attachments"))))
+
+                if (l.Attachments.Any(a => !a.StartsWith(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "PaygirLetters_Attachments"))))
                 {
                     FileAttachmentHelper.CopyAttachments(l.Id, l.Attachments);
                     l.Attachments = FileAttachmentHelper.GetSavedAttachments(l.Id);
                 }
+
                 RefreshGrid();
             }
         }
 
         private void btnDelete_Click(object sender, EventArgs e)
         {
-            if (dgvLetters.SelectedRows.Count==0) return;
-            var id = (int)dgvLetters.SelectedRows[0].Cells[0].Value;
-            var letter = _letters.FirstOrDefault(x=>x.Id==id);
-            if (letter==null) return;
-            if (MessageBox.Show("آیا مطمئن هستید؟","حذف",MessageBoxButtons.YesNo)==DialogResult.Yes)
+            if (dgvLetters.SelectedRows.Count == 0) return;
+            var index = dgvLetters.SelectedRows[0].Index;
+            if (index < 0 || index >= _letters.Count) return;
+
+            if (MessageBox.Show("آیا مطمئن هستید؟", "حذف", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                _letters.Remove(letter);
+                _letters.RemoveAt(index);
                 RefreshGrid();
             }
         }
@@ -178,33 +200,39 @@ namespace FinalDotnetCoreBuild
         {
             var kw = txtSearch.Text.Trim();
             var recipient = txtSearchRecipient.Text.Trim();
-            var statusFilter = cmbFilterStatus.Text;
+            var statusFilter = cmbFilterStatus.Text.Trim();
+
             var filtered = _letters.AsEnumerable();
-            if (!string.IsNullOrWhiteSpace(kw)) filtered = filtered.Where(x=>x.Subject.Contains(kw));
-            if (!string.IsNullOrWhiteSpace(recipient)) filtered = filtered.Where(x=>x.Recipient.Contains(recipient));
+
+            if (!string.IsNullOrWhiteSpace(kw))
+                filtered = filtered.Where(x => x.Subject.Contains(kw));
+
+            if (!string.IsNullOrWhiteSpace(recipient))
+                filtered = filtered.Where(x => x.Recipient.Contains(recipient));
+
             if (!string.IsNullOrWhiteSpace(statusFilter))
             {
-                if (Enum.TryParse<LetterStatus>(statusFilter, out var st))
-                    filtered = filtered.Where(x=>x.Status==st);
+                filtered = filtered.Where(x => GetPersianStatus(x.Status) == statusFilter);
             }
+
             dgvLetters.Rows.Clear();
-            foreach(var l in filtered)
+            int rowNum = 1;
+            foreach (var l in filtered)
             {
                 var rowIdx = dgvLetters.Rows.Add(
-                    l.Id,
-                    l.RowNumber,
+                    rowNum++,
                     l.Subject,
                     l.Recipient,
                     l.LetterNumber,
                     ToPersianDateString(l.SentDate),
                     l.ResponseDays,
                     ToPersianDateString(l.DueDate),
-                    l.Status.ToString(),
+                    GetPersianStatus(l.Status),
                     l.Notes,
                     string.Join(";", l.Attachments ?? new List<string>())
                 );
                 var row = dgvLetters.Rows[rowIdx];
-                ApplyRowColor(row,l);
+                ApplyRowColor(row, l);
             }
         }
 
@@ -217,7 +245,7 @@ namespace FinalDotnetCoreBuild
         private void btnLoadExcel_Click(object sender, EventArgs e)
         {
             _letters = ExcelHelper.Load();
-            if (_letters.Any()) _nextId = _letters.Max(x=>x.Id) + 1;
+            if (_letters.Any()) _nextId = _letters.Max(x => x.Id) + 1;
             RefreshGrid();
             MessageBox.Show("بارگذاری انجام شد", "پیام");
         }
