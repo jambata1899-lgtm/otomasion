@@ -31,15 +31,15 @@ jobs:
       run: nuget restore PaygirLettersApp.sln
 
     # 4. Build با ابزار MSBuild (که NET Framework را بهتر می شناسد)
-    # اضافه کردن /p:TargetFrameworks برای شبیه سازی بیلد مدرن
+    # *حالا از گیومه برای جلوگیری از خطای PowerShell استفاده می کنیم*
     - name: Build Solution
-      run: msbuild PaygirLettersApp.sln /p:Configuration=Release /t:Rebuild /p:LangVersion=latest /p:TargetFrameworks=net8.0-windows;net48
+      run: msbuild PaygirLettersApp.sln /p:Configuration=Release /t:Rebuild "/p:LangVersion=latest" "/p:TargetFrameworks=net8.0-windows;net48"
 
     # 5. Upload Artifact
+    # مسیر را باید با مسیر فایل خروجی واقعی خود تطبیق دهید
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: PaygirLettersApp-Release
-        # این مسیر را باید با مسیر فایل خروجی واقعی خود تطبیق دهید (مثلاً پوشه bin/Release)
         path: PaygirLettersApp/bin/Release/
         retention-days: 5
