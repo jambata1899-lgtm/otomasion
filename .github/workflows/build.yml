@@ -1,4 +1,4 @@
-name: Visual Studio Build (NET Framework)
+name: Final Dotnet Core Build for Windows Forms
 
 on:
   push:
@@ -9,37 +9,38 @@ on:
 
 jobs:
   build:
-    # برای بیلد NET Framework 4.8 یا ویندوز فرمز، حتما به ویندوز نیاز داریم
     runs-on: windows-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      # 1. نصب .NET 8 SDK
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x' 
 
-    # 1. نصب ابزارهای MSBuild و Visual Studio
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v2
+      # 2. Restore Dependencies (با پارامتر target framework مورد نیاز)
+      # ما پروژه را مجبور می کنیم که برای net8.0-windows پکیج ها را Restore کند
+      - name: Restore dependencies for net8.0-windows
+        run: dotnet restore PaygirLettersApp.sln /p:TargetFramework=net8.0-windows
 
-    # 2. نصب ابزار مدیریت پکیج NuGet
-    - name: Setup NuGet
-      uses: NuGet/setup-nuget@v2
+      # 3. Build پروژه (از msbuild برای LangVersion استفاده می کنیم)
+      # *نکته کلیدی: استفاده از dotnet build با پارامترهای msbuild*
+      - name: Build project
+        # از dotnet build استفاده می کنیم اما TargetFramework را تعیین می کنیم
+        run: dotnet build PaygirLettersApp.sln --configuration Release /p:LangVersion=latest /p:TargetFramework=net8.0-windows --no-restore
 
-    # 3. Restore پکیج ها با ابزار NuGet (برای NET Framework بهترین روش است)
-    - name: Restore NuGet packages
-      run: nuget restore PaygirLettersApp.sln
+      # 4. Publish خروجی
+      # با این پارامترها، باید خروجی اجرایی نهایی را تولید کند
+      - name: Publish Release build
+        run: dotnet publish PaygirLettersApp/PaygirLettersApp.csproj --configuration Release /p:TargetFramework=net8.0-windows --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true --no-restore
 
-    # 4. Build با ابزار MSBuild (که NET Framework را بهتر می شناسد)
-    # *حالا از گیومه برای جلوگیری از خطای PowerShell استفاده می کنیم*
-    - name: Build Solution
-      run: msbuild PaygirLettersApp.sln /p:Configuration=Release /t:Rebuild "/p:LangVersion=latest" "/p:TargetFrameworks=net8.0-windows;net48"
-
-    # 5. Upload Artifact
-    # مسیر را باید با مسیر فایل خروجی واقعی خود تطبیق دهید
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: PaygirLettersApp-Release
-        path: PaygirLettersApp/bin/Release/
-        retention-days: 5
+      # 5. Upload artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PaygirLettersApp-Release
+          path: ${{ github.workspace }}/artifacts
+          retention-days: 5
