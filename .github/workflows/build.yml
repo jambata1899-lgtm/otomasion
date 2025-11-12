@@ -1,4 +1,4 @@
-name: Final Dotnet Core Build for Windows Forms (64-bit)
+name: Final Dotnet Core Build for Windows Forms (64-bit) - Dynamic Search
 
 on:
   push:
@@ -9,36 +9,62 @@ on:
 
 jobs:
   build:
-    # از ویندوز برای بیلد گرفتن برنامه ویندوز استفاده می کند
     runs-on: windows-latest
 
     steps:
-      # 1. دریافت سورس از ریپازیتوری
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      # 2. نصب .NET 8 SDK
+      
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+          
+      # -----------------------------------------------------------
+      # 1. جستجوی پویا برای یافتن آدرس دقیق فایل SLN (SOLVES MSB1009)
+      # -----------------------------------------------------------
+      - name: Find Solution File Path
+        id: find_sln
+        shell: pwsh
+        run: |
+          # پیدا کردن اولین فایل SLN در هر زیرپوشه
+          $sln_file = Get-ChildItem -Path ${{ github.workspace }} -Recurse -Filter *.sln | Select-Object -First 1
+          if ($sln_file) {
+            $relative_path = $sln_file.FullName.Replace("${{ github.workspace }}\", "")
+            echo "Found SLN at: $relative_path"
+            echo "sln_path=$relative_path" >> $env:GITHUB_OUTPUT
+          } else {
+            throw "ERROR: Could not find any .sln file in the repository. Please ensure a .sln file exists."
+          }
 
-      # 3. بازیابی وابستگی‌ها (Restore)
-      # SLN را از ریشه می خواند و مطمئن می شود که RuntimeIdentifier برای Publish لحاظ شود
+      # 2. جستجوی پویا برای یافتن آدرس دقیق فایل CSPROJ
+      - name: Find Project File Path
+        id: find_csproj
+        shell: pwsh
+        run: |
+          # پیدا کردن فایل CSPROJ با نام مشخص
+          $csproj_file = Get-ChildItem -Path ${{ github.workspace }} -Recurse -Filter PaygirLettersApp.csproj | Select-Object -First 1
+          if ($csproj_file) {
+            $relative_path = $csproj_file.FullName.Replace("${{ github.workspace }}\", "")
+            echo "Found CSPROJ at: $relative_path"
+            echo "csproj_path=$relative_path" >> $env:GITHUB_OUTPUT
+          } else {
+            throw "ERROR: Could not find the PaygirLettersApp.csproj file."
+          }
+
+      # -----------------------------------------------------------
+      # 3. استفاده از آدرس های پیدا شده در مراحل Build
+      # -----------------------------------------------------------
       - name: Restore dependencies
-        run: dotnet restore PaygirLettersApp.sln /p:TargetFramework=net8.0-windows /p:RuntimeIdentifiers=win-x64
+        run: dotnet restore ${{ steps.find_sln.outputs.sln_path }} /p:TargetFramework=net8.0-windows /p:RuntimeIdentifiers=win-x64
 
-      # 4. بیلد پروژه در حالت Release
-      # از آخرین ورژن C# برای سازگاری با کد مدرن شما استفاده می کند
       - name: Build project (Release)
-        run: dotnet build PaygirLettersApp.sln --configuration Release /p:LangVersion=latest /p:TargetFramework=net8.0-windows --no-restore
+        run: dotnet build ${{ steps.find_sln.outputs.sln_path }} --configuration Release /p:LangVersion=latest /p:TargetFramework=net8.0-windows --no-restore
 
-      # 5. انتشار خروجی نهایی برای ویندوز 64 بیت (Self-contained)
-      # فایل اجرایی نهایی (EXE) را تولید می کند
       - name: Publish Release build (x64)
-        run: dotnet publish PaygirLettersApp/PaygirLettersApp.csproj --configuration Release /p:TargetFramework=net8.0-windows --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true --no-restore
+        run: dotnet publish ${{ steps.find_csproj.outputs.csproj_path }} --configuration Release /p:TargetFramework=net8.0-windows --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true --no-restore
 
-      # 6. آپلود خروجی به عنوان Artifact (برای دانلود)
+      # 4. آپلود خروجی به عنوان Artifact
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
