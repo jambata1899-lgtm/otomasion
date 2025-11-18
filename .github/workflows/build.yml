@@ -1,4 +1,4 @@
-name: Final Dotnet Core Build for Windows Forms (64-bit) - Final
+name: Final Dotnet Core Build for Windows Forms (32-bit) - Final
 
 on:
   push:
@@ -25,23 +25,20 @@ jobs:
       # 2. حذف تمام خطاهای NU1301 با پاکسازی Source
       # -----------------------------------------------------------
       - name: Clean NuGet Sources
-        # این دستور، فایل پیکربندی NuGet قدیمی را حذف می کند تا فقط از Source های پیش فرض استفاده شود
         run: dotnet nuget locals all --clear
 
       # 3. بازیابی وابستگی‌ها (Restore)
-      # Restore ساده، پس از پاکسازی cache
       - name: Restore dependencies
         run: dotnet restore FinalDotnetCoreBuild.sln
         
       # 4. بیلد نهایی و انتشار (فقط برای net8.0-windows)
-      # FIX: حذف بیلد دوگانه، فقط بیلد net8.0
-      - name: Publish Release build (x64 Final)
-        run: dotnet publish FinalDotnetCoreBuild.csproj --configuration Release /p:TargetFramework=net8.0-windows /p:LangVersion=latest --output ${{ github.workspace }}/artifacts --runtime win-x64 --self-contained true --no-restore
+      - name: Publish Release build (x86 Final)
+        run: dotnet publish FinalDotnetCoreBuild.csproj --configuration Release /p:TargetFramework=net8.0-windows /p:LangVersion=latest --output ${{ github.workspace }}/artifacts --runtime win-x86 --self-contained true --no-restore
 
       # 5. آپلود خروجی به عنوان Artifact
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: FinalDotnetCoreBuild-Release-x64
+          name: FinalDotnetCoreBuild-Release-x86
           path: ${{ github.workspace }}/artifacts
           retention-days: 5
