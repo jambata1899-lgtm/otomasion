@@ -134,9 +134,98 @@ namespace FinalDotnetCoreBuild
             if (!string.IsNullOrWhiteSpace(statusFilter) && Enum.TryParse<LetterStatus>(statusFilter, out var st))
                 filtered = filtered.Where(x => x.Status == st);
 
-            PopulateGrid(filtered);
+            dgvLetters.Rows.Clear();
+            foreach (var l in filtered)
+            {
+                int rowIdx = dgvLetters.Rows.Add();
+                var row = dgvLetters.Rows[rowIdx];
+
+                row.Cells[0].Value = (rowIdx + 1).ToString();
+                row.Cells[1].Value = l?.Subject ?? "";
+                row.Cells[2].Value = l?.Recipient ?? "";
+                row.Cells[3].Value = l?.LetterNumber ?? "";
+                row.Cells[4].Value = ToPersianDateString(l?.SentDate ?? DateTime.MinValue);
+                row.Cells[5].Value = l?.ResponseDays ?? 0;
+                row.Cells[6].Value = ToPersianDateString(l?.DueDate == default ? DateTime.MinValue : l.DueDate);
+                row.Cells[7].Value = l?.Status.ToString() ?? "";
+                row.Cells[8].Value = l?.Notes ?? "";
+                row.Cells[9].Value = string.Join(";", l?.Attachments ?? new List<string>());
+
+                row.Tag = l;
+                if (l != null) ApplyRowColor(row, l);
+            }
         }
 
+        private void btnSaveExcel_Click(object sender, EventArgs e)
+        {
+            ExcelHelper.Save(_letters);
+            MessageBox.Show("ذخیره انجام شد", "پیام", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void btnLoadExcel_Click(object sender, EventArgs e)
+        {
+            _letters.Clear();
+            _letters.AddRange(ExcelHelper.Load());
+            RefreshGrid();
+            MessageBox.Show("بارگذاری انجام شد", "پیام", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        // ----------------------------
+        // متدهای کمکی
+        // ----------------------------
+
+        private void RefreshGrid()
+        {
+            PopulateGrid(_letters);
+        }
+
+        private void PopulateGrid(IEnumerable<Letter> source)
+        {
+            dgvLetters.Rows.Clear();
+            if (source == null) return;
+
+            foreach (var l in source)
+            {
+                int rowIdx = dgvLetters.Rows.Add();
+                var row = dgvLetters.Rows[rowIdx];
+
+                row.Cells[0].Value = (rowIdx + 1).ToString();
+                row.Cells[1].Value = l?.Subject ?? "";
+                row.Cells[2].Value = l?.Recipient ?? "";
+                row.Cells[3].Value = l?.LetterNumber ?? "";
+                row.Cells[4].Value = ToPersianDateString(l?.SentDate ?? DateTime.MinValue);
+                row.Cells[5].Value = l?.ResponseDays ?? 0;
+                row.Cells[6].Value = ToPersianDateString(l?.DueDate == default ? DateTime.MinValue : l.DueDate);
+                row.Cells[7].Value = l?.Status.ToString() ?? "";
+                row.Cells[8].Value = l?.Notes ?? "";
+                row.Cells[9].Value = string.Join(";", l?.Attachments ?? new List<string>());
+
+                row.Tag = l;
+                if (l != null) ApplyRowColor(row, l);
+            }
+        }
+
+        private string ToPersianDateString(DateTime dt)
+        {
+            if (dt == DateTime.MinValue) return "";
+            return $"{_pc.GetYear(dt)}/{_pc.GetMonth(dt):00}/{_pc.GetDayOfMonth(dt):00}";
+        }
+
+        private void ApplyRowColor(DataGridViewRow row, Letter l)
+        {
+            if (row == null || l == null) return;
+
+            if (l.Status == LetterStatus.پاسخ_داده_شده)
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightGreen;
+            else if (l.Status == LetterStatus.پاسخ_داده_نشده)
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightCoral;
+            else if (l.Status == LetterStatus.در_حال_پیگیری)
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightYellow;
+            else
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.White;
+        }
+    }
+}
         private void btnSaveExcel_Click(object sender, EventArgs e)
         {
             ExcelHelper.Save(_letters);
