@@ -1,16 +1,30 @@
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-    <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <!-- اضافه کردن هر دو معماری -->
-    <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- انتشار -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
+
+    <!-- نسخه زبان -->
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <!-- در صورت نیاز به منابع یا آیکون -->
+  <!--
+  <PropertyGroup>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+  </PropertyGroup>
+  -->
+
+  <!-- اگر فایل‌ها یا پوشه‌های خاصی داری، اینجا اضافه کن -->
+  <!--
   <ItemGroup>
-    <PackageReference Include="ClosedXML" Version="0.101.0" />
-    <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.1.3" />
+    <None Include="somefile.txt" CopyToOutputDirectory="Always" />
   </ItemGroup>
+  -->
 </Project>
