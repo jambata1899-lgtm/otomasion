@@ -83,10 +83,8 @@ namespace FinalDotnetCoreBuild
         private void btnEdit_Click(object sender, EventArgs e)
         {
             if (dgvLetters.SelectedRows.Count == 0) return;
-            var rowNumberText = dgvLetters.SelectedRows[0].Cells[0].Value?.ToString();
-            if (!int.TryParse(rowNumberText, out var rowNumber)) return;
-
-            var letter = _letters.FirstOrDefault(x => x.RowNumber == rowNumber);
+            var subject = dgvLetters.SelectedRows[0].Cells[1].Value?.ToString();
+            var letter = _letters.FirstOrDefault(x => x.Subject == subject);
             if (letter == null) return;
 
             var form = new LetterEditForm(letter, _letters.Select(x => x.Recipient).Distinct().ToList());
@@ -107,10 +105,8 @@ namespace FinalDotnetCoreBuild
         private void btnDelete_Click(object sender, EventArgs e)
         {
             if (dgvLetters.SelectedRows.Count == 0) return;
-            var rowNumberText = dgvLetters.SelectedRows[0].Cells[0].Value?.ToString();
-            if (!int.TryParse(rowNumberText, out var rowNumber)) return;
-
-            var letter = _letters.FirstOrDefault(x => x.RowNumber == rowNumber);
+            var subject = dgvLetters.SelectedRows[0].Cells[1].Value?.ToString();
+            var letter = _letters.FirstOrDefault(x => x.Subject == subject);
             if (letter == null) return;
 
             if (MessageBox.Show("آیا مطمئن هستید؟", "حذف", MessageBoxButtons.YesNo) == DialogResult.Yes)
@@ -136,7 +132,7 @@ namespace FinalDotnetCoreBuild
             foreach (var l in filtered)
             {
                 var rowIdx = dgvLetters.Rows.Add(
-                    l.RowNumber.ToString(),   // ← نمایش به صورت رشته
+                    (dgvLetters.Rows.Count + 1).ToString(),   // شماره ردیف خودکار
                     l.Subject,
                     l.Recipient,
                     l.LetterNumber,
@@ -175,7 +171,7 @@ namespace FinalDotnetCoreBuild
             foreach (var l in _letters)
             {
                 var rowIdx = dgvLetters.Rows.Add(
-                    l.RowNumber.ToString(),   // ← نمایش به صورت رشته
+                    (dgvLetters.Rows.Count + 1).ToString(),   // شماره ردیف خودکار
                     l.Subject,
                     l.Recipient,
                     l.LetterNumber,
