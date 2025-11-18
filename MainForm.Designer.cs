@@ -125,6 +125,5 @@ namespace FinalDotnetCoreBuild
             btnLoadExcel.Click += btnLoadExcel_Click;
         }
     }
-}    btnSaveExcel.Click += btnSaveExcel_Click;
-    btnLoadExcel.Click += btnLoadExcel_Click;
+}    btnLoadExcel.Click += btnLoadExcel_Click;
 }
