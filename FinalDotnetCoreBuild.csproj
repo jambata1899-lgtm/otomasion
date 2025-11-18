@@ -5,8 +5,10 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <!-- اضافه کردن هر دو معماری -->
+    <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.101.0" />
     <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.1.3" />
