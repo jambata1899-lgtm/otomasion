@@ -114,8 +114,9 @@ namespace FinalDotnetCoreBuild
 
                 if (l.Attachments.Any())
                 {
-                    FileAttachmentHelper.CopyAttachments(l.RowNumber, l.Attachments);
-                    l.Attachments = FileAttachmentHelper.GetSavedAttachments(l.RowNumber);
+                    int rowNum = int.Parse(l.RowNumber);
+                    FileAttachmentHelper.CopyAttachments(rowNum, l.Attachments);
+                    l.Attachments = FileAttachmentHelper.GetSavedAttachments(rowNum);
                 }
                 RefreshGrid();
             }
@@ -133,6 +134,13 @@ namespace FinalDotnetCoreBuild
             {
                 var l = form.Letter;
                 l.DueDate = l.SentDate.AddDays(l.ResponseDays);
+
+                if (l.Attachments.Any())
+                {
+                    int rowNum = int.Parse(l.RowNumber);
+                    FileAttachmentHelper.CopyAttachments(rowNum, l.Attachments);
+                    l.Attachments = FileAttachmentHelper.GetSavedAttachments(rowNum);
+                }
                 RefreshGrid();
             }
         }
