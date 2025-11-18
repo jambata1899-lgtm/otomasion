@@ -125,4 +125,29 @@ namespace FinalDotnetCoreBuild
             btnLoadExcel.Click += btnLoadExcel_Click;
         }
     }
+}            var panelLabels = new FlowLayoutPanel()
+            {
+                FlowDirection = FlowDirection.LeftToRight,
+                Dock = DockStyle.Bottom,
+                Padding = new Padding(10),
+                AutoSize = true
+            };
+            panelLabels.Controls.AddRange(new Control[] {
+                lblDesigner, lblDateTime
+            });
+
+            // افزودن به فرم
+            this.Controls.Add(panelButtons);
+            this.Controls.Add(panelFilters);
+            this.Controls.Add(panelLabels);
+
+            // رویدادها
+            btnAdd.Click += btnAdd_Click;
+            btnEdit.Click += btnEdit_Click;
+            btnDelete.Click += btnDelete_Click;
+            btnSearch.Click += btnSearch_Click;
+            btnSaveExcel.Click += btnSaveExcel_Click;
+            btnLoadExcel.Click += btnLoadExcel_Click;
+        }
+    }
 }
