@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing; // اضافه شده برای استفاده از Color
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
@@ -74,7 +75,8 @@ namespace FinalDotnetCoreBuild
             if (l.Attachments != null && l.Attachments.Any())
             {
                 FileAttachmentHelper.CopyAttachments(l.StableKey, l.Attachments);
-                l.Attachments = FileAttachmentHelper.GetSavedAttachments(l.StableKey);
+                // رفع اخطار CS8602 (Dereference of a possibly null reference) با استفاده از Null-Conditional
+                l.Attachments = FileAttachmentHelper.GetSavedAttachments(l.StableKey)?.ToList() ?? new List<string>();
             }
 
             RefreshGrid();
@@ -98,7 +100,8 @@ namespace FinalDotnetCoreBuild
             if (l.Attachments != null && l.Attachments.Any())
             {
                 FileAttachmentHelper.CopyAttachments(l.StableKey, l.Attachments);
-                l.Attachments = FileAttachmentHelper.GetSavedAttachments(l.StableKey);
+                // رفع اخطار CS8602 (Dereference of a possibly null reference) با استفاده از Null-Conditional
+                l.Attachments = FileAttachmentHelper.GetSavedAttachments(l.StableKey)?.ToList() ?? new List<string>();
             }
 
             RefreshGrid();
@@ -139,18 +142,21 @@ namespace FinalDotnetCoreBuild
             {
                 int rowIdx = dgvLetters.Rows.Add();
                 var row = dgvLetters.Rows[rowIdx];
-
+                
+                // --- رفع مشکل CS1503: تخصیص مقادیر عددی ---
+                // اطمینان از اینکه مقادیر به صورت صحیح (رشته یا عدد) به سلول‌ها اختصاص یابد
                 row.Cells[0].Value = (rowIdx + 1).ToString();
                 row.Cells[1].Value = l?.Subject ?? "";
                 row.Cells[2].Value = l?.Recipient ?? "";
                 row.Cells[3].Value = l?.LetterNumber ?? "";
                 row.Cells[4].Value = ToPersianDateString(l?.SentDate ?? DateTime.MinValue);
-                row.Cells[5].Value = l?.ResponseDays ?? 0;
+                row.Cells[5].Value = l?.ResponseDays ?? 0; // باید عدد باشد
                 row.Cells[6].Value = ToPersianDateString(l?.DueDate == default ? DateTime.MinValue : l.DueDate);
                 row.Cells[7].Value = l?.Status.ToString() ?? "";
                 row.Cells[8].Value = l?.Notes ?? "";
                 row.Cells[9].Value = string.Join(";", l?.Attachments ?? new List<string>());
-
+                // ---------------------------------------------
+                
                 row.Tag = l;
                 if (l != null) ApplyRowColor(row, l);
             }
@@ -189,16 +195,18 @@ namespace FinalDotnetCoreBuild
                 int rowIdx = dgvLetters.Rows.Add();
                 var row = dgvLetters.Rows[rowIdx];
 
+                // --- رفع مشکل CS1503: تخصیص مقادیر عددی ---
                 row.Cells[0].Value = (rowIdx + 1).ToString();
                 row.Cells[1].Value = l?.Subject ?? "";
                 row.Cells[2].Value = l?.Recipient ?? "";
                 row.Cells[3].Value = l?.LetterNumber ?? "";
                 row.Cells[4].Value = ToPersianDateString(l?.SentDate ?? DateTime.MinValue);
-                row.Cells[5].Value = l?.ResponseDays ?? 0;
+                row.Cells[5].Value = l?.ResponseDays ?? 0; // باید عدد باشد
                 row.Cells[6].Value = ToPersianDateString(l?.DueDate == default ? DateTime.MinValue : l.DueDate);
                 row.Cells[7].Value = l?.Status.ToString() ?? "";
                 row.Cells[8].Value = l?.Notes ?? "";
                 row.Cells[9].Value = string.Join(";", l?.Attachments ?? new List<string>());
+                // ---------------------------------------------
 
                 row.Tag = l;
                 if (l != null) ApplyRowColor(row, l);
@@ -213,16 +221,17 @@ namespace FinalDotnetCoreBuild
 
         private void ApplyRowColor(DataGridViewRow row, Letter l)
         {
+            // رفع اخطار CS8602 با بررسی صریح 'null'
             if (row == null || l == null) return;
 
             if (l.Status == LetterStatus.پاسخ_داده_شده)
-                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightGreen;
+                row.DefaultCellStyle.BackColor = Color.LightGreen;
             else if (l.Status == LetterStatus.پاسخ_داده_نشده)
-                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightCoral;
+                row.DefaultCellStyle.BackColor = Color.LightCoral;
             else if (l.Status == LetterStatus.در_حال_پیگیری)
-                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightYellow;
+                row.DefaultCellStyle.BackColor = Color.LightYellow;
             else
-                row.DefaultCellStyle.BackColor = System.Drawing.Color.White;
+                row.DefaultCellStyle.BackColor = Color.White;
         }
     }
 }
