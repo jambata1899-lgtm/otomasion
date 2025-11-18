@@ -11,7 +11,7 @@ namespace FinalDotnetCoreBuild
     {
         private List<Letter> _letters = new List<Letter>();
 
-        // اصلاح: استفاده از System.Windows.Forms.Timer برای رفع ابهام
+        // استفاده از Timer ویندوز فرم
         private System.Windows.Forms.Timer _clockTimer = new System.Windows.Forms.Timer();
         private System.Windows.Forms.Timer _notifyTimer = new System.Windows.Forms.Timer();
 
@@ -165,6 +165,47 @@ namespace FinalDotnetCoreBuild
             _letters = ExcelHelper.Load();
             RefreshGrid();
             MessageBox.Show("بارگذاری انجام شد", "پیام");
+        }
+
+        // ----------------------------
+        // متدهای کمکی
+        // ----------------------------
+
+        private void RefreshGrid()
+        {
+            dgvLetters.Rows.Clear();
+            foreach (var l in _letters)
+            {
+                var rowIdx = dgvLetters.Rows.Add(
+                    l.RowNumber,
+                    l.Subject,
+                    l.Recipient,
+                    l.LetterNumber,
+                    ToPersianDateString(l.SentDate),
+                    l.ResponseDays,
+                    ToPersianDateString(l.DueDate),
+                    l.Status.ToString(),
+                    l.Notes,
+                    string.Join(";", l.Attachments ?? new List<string>())
+                );
+                var row = dgvLetters.Rows[rowIdx];
+                ApplyRowColor(row, l);
+            }
+        }
+
+        private string ToPersianDateString(DateTime dt)
+        {
+            return $"{_pc.GetYear(dt)}/{_pc.GetMonth(dt):00}/{_pc.GetDayOfMonth(dt):00}";
+        }
+
+        private void ApplyRowColor(DataGridViewRow row, Letter l)
+        {
+            if (l.Status == LetterStatus.پاسخ_داده_شده)
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightGreen;
+            else if (l.Status == LetterStatus.پاسخ_داده_نشده)
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightCoral;
+            else if (l.Status == LetterStatus.در_حال_پیگیری)
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightYellow;
         }
     }
 }
