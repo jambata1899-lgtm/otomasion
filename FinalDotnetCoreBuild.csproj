@@ -1,30 +1,45 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
+    <!-- نوع خروجی: برنامه ویندوزی -->
+    <OutputType>WinExe</OutputType>
+
+    <!-- هدف: دات‌نت 8 ویندوز -->
     <TargetFramework>net8.0-windows</TargetFramework>
+
+    <!-- فعال‌سازی Windows Forms -->
     <UseWindowsForms>true</UseWindowsForms>
+
+    <!-- تنظیمات زبان و ویژگی‌ها -->
+    <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
 
-    <!-- انتشار -->
+    <!-- تنظیمات انتشار -->
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x86</RuntimeIdentifier>
 
-    <!-- نسخه زبان -->
-    <LangVersion>latest</LangVersion>
+    <!-- آیکون برنامه (اختیاری) -->
+    <!-- <ApplicationIcon>app.ico</ApplicationIcon> -->
   </PropertyGroup>
 
-  <!-- در صورت نیاز به منابع یا آیکون -->
-  <!--
-  <PropertyGroup>
-    <ApplicationIcon>app.ico</ApplicationIcon>
-  </PropertyGroup>
-  -->
+  <!-- وابستگی‌ها -->
+  <ItemGroup>
+    <!-- کتابخانه کار با Excel -->
+    <PackageReference Include="ClosedXML" Version="0.102.0" />
 
-  <!-- اگر فایل‌ها یا پوشه‌های خاصی داری، اینجا اضافه کن -->
+    <!-- کتابخانه‌های پایه برای WinForms -->
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
+  </ItemGroup>
+
+  <!-- منابع اضافی (اختیاری) -->
   <!--
   <ItemGroup>
-    <None Include="somefile.txt" CopyToOutputDirectory="Always" />
+    <None Include="Resources\app.ico" Pack="true" PackagePath="\" />
+    <None Include="Resources\somefile.txt" CopyToOutputDirectory="Always" />
   </ItemGroup>
   -->
+
 </Project>
