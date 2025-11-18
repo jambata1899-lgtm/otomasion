@@ -9,13 +9,11 @@ namespace FinalDotnetCoreBuild
 {
     public partial class MainForm : Form
     {
-        // فیلدها
-        private readonly List<Letter> _letters = new List<Letter>();
-        private readonly System.Windows.Forms.Timer _clockTimer = new System.Windows.Forms.Timer();
-        private readonly System.Windows.Forms.Timer _notifyTimer = new System.Windows.Forms.Timer();
-        private readonly PersianCalendar _pc = new PersianCalendar();
+        private List<Letter> _letters = new List<Letter>();
+        private System.Windows.Forms.Timer _clockTimer = new System.Windows.Forms.Timer();
+        private System.Windows.Forms.Timer _notifyTimer = new System.Windows.Forms.Timer();
+        private PersianCalendar _pc = new PersianCalendar();
 
-        // سازنده
         public MainForm()
         {
             InitializeComponent();
@@ -23,7 +21,6 @@ namespace FinalDotnetCoreBuild
             FormClosing += MainForm_FormClosing;
         }
 
-        // رویدادهای فرم
         private void MainForm_Load(object? sender, EventArgs e)
         {
             _letters = ExcelHelper.Load();
@@ -51,7 +48,6 @@ namespace FinalDotnetCoreBuild
             ExcelHelper.Save(_letters);
         }
 
-        // ساعت بالای فرم
         private void UpdateClock()
         {
             var now = DateTime.Now;
@@ -62,7 +58,10 @@ namespace FinalDotnetCoreBuild
             lblDateTime.Text = $"{y}/{m}/{d} {time}";
         }
 
+        // ----------------------------
         // رویدادهای دکمه‌ها
+        // ----------------------------
+
         private void btnAdd_Click(object sender, EventArgs e)
         {
             var form = new LetterEditForm(null, _letters.Select(x => x.Recipient).Distinct().ToList());
@@ -137,7 +136,7 @@ namespace FinalDotnetCoreBuild
             foreach (var l in filtered)
             {
                 var rowIdx = dgvLetters.Rows.Add(
-                    l.RowNumber.ToString(),               // نمایش به صورت رشته
+                    l.RowNumber.ToString(),   // نمایش به صورت رشته
                     l.Subject,
                     l.Recipient,
                     l.LetterNumber,
@@ -166,14 +165,17 @@ namespace FinalDotnetCoreBuild
             MessageBox.Show("بارگذاری انجام شد", "پیام");
         }
 
+        // ----------------------------
         // متدهای کمکی
+        // ----------------------------
+
         private void RefreshGrid()
         {
             dgvLetters.Rows.Clear();
             foreach (var l in _letters)
             {
                 var rowIdx = dgvLetters.Rows.Add(
-                    l.RowNumber.ToString(),               // نمایش به صورت رشته
+                    l.RowNumber.ToString(),   // نمایش به صورت رشته
                     l.Subject,
                     l.Recipient,
                     l.LetterNumber,
