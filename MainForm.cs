@@ -211,3 +211,113 @@ namespace FinalDotnetCoreBuild
         }
     }
 }
+            RefreshGrid();
+        }
+
+        private void btnDelete_Click(object sender, EventArgs e)
+        {
+            if (dgvLetters.SelectedRows.Count == 0) return;
+            var row = dgvLetters.SelectedRows[0];
+            if (row?.Tag is not Letter letter) return;
+
+            if (MessageBox.Show("آیا مطمئن هستید؟", "حذف", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                return;
+
+            _letters.Remove(letter);
+            RefreshGrid();
+        }
+
+        private void btnSearch_Click(object sender, EventArgs e)
+        {
+            var kw = (txtSearch?.Text ?? "").Trim();
+            var recipient = (txtSearchRecipient?.Text ?? "").Trim();
+            var statusFilter = cmbFilterStatus?.Text ?? "";
+
+            var filtered = _letters.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(kw))
+                filtered = filtered.Where(x => (x.Subject ?? "").Contains(kw, StringComparison.OrdinalIgnoreCase));
+
+            if (!string.IsNullOrWhiteSpace(recipient))
+                filtered = filtered.Where(x => (x.Recipient ?? "").Contains(recipient, StringComparison.OrdinalIgnoreCase));
+
+            if (!string.IsNullOrWhiteSpace(statusFilter) && Enum.TryParse<LetterStatus>(statusFilter, out var st))
+                filtered = filtered.Where(x => x.Status == st);
+
+            PopulateGrid(filtered);
+        }
+
+        private void btnSaveExcel_Click(object sender, EventArgs e)
+        {
+            ExcelHelper.Save(_letters);
+            MessageBox.Show("ذخیره انجام شد", "پیام", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void btnLoadExcel_Click(object sender, EventArgs e)
+        {
+            _letters.Clear();
+            _letters.AddRange(ExcelHelper.Load());
+            RefreshGrid();
+            MessageBox.Show("بارگذاری انجام شد", "پیام", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        // ----------------------------
+        // متدهای کمکی
+        // ----------------------------
+
+        private void RefreshGrid()
+        {
+            PopulateGrid(_letters);
+        }
+
+        private void PopulateGrid(IEnumerable<Letter> source)
+        {
+            dgvLetters.Rows.Clear();
+            if (source == null) return;
+
+            foreach (var l in source)
+            {
+                var values = new object[]
+                {
+                    (dgvLetters.Rows.Count + 1).ToString(),
+                    l?.Subject ?? "",
+                    l?.Recipient ?? "",
+                    l?.LetterNumber ?? "",
+                    ToPersianDateString(l?.SentDate ?? DateTime.MinValue),
+                    l?.ResponseDays ?? 0,
+                    ToPersianDateString(l?.DueDate == default ? DateTime.MinValue : l.DueDate),
+                    l?.Status.ToString() ?? "",
+                    l?.Notes ?? "",
+                    string.Join(";", l?.Attachments ?? new List<string>())
+                };
+
+                int rowIdx = dgvLetters.Rows.Add(values);
+                var row = dgvLetters.Rows[rowIdx];
+                row.Tag = l;
+
+                if (l != null)
+                    ApplyRowColor(row, l);
+            }
+        }
+
+        private string ToPersianDateString(DateTime dt)
+        {
+            if (dt == DateTime.MinValue) return "";
+            return $"{_pc.GetYear(dt)}/{_pc.GetMonth(dt):00}/{_pc.GetDayOfMonth(dt):00}";
+        }
+
+        private void ApplyRowColor(DataGridViewRow row, Letter l)
+        {
+            if (row == null || l == null) return;
+
+            if (l.Status == LetterStatus.پاسخ_داده_شده)
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightGreen;
+            else if (l.Status == LetterStatus.پاسخ_داده_نشده)
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightCoral;
+            else if (l.Status == LetterStatus.در_حال_پیگیری)
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightYellow;
+            else
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.White;
+        }
+    }
+}
