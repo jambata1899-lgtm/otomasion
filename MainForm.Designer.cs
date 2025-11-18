@@ -12,6 +12,7 @@ private void InitializeComponent()
     this.AutoScaleMode = AutoScaleMode.Font;
     this.AutoScroll = true;
 
+    // جدول نامه‌ها
     dgvLetters = new DataGridView();
     dgvLetters.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
     dgvLetters.Location = new System.Drawing.Point(12, 12);
@@ -35,33 +36,66 @@ private void InitializeComponent()
 
     this.Controls.Add(dgvLetters);
 
-    btnAdd = new Button() { Text = "افزودن نامه جدید", Left = 12, Top = 510, Width = 140, Height = 34, Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
-    btnEdit = new Button() { Text = "ویرایش", Left = 160, Top = 510, Width = 100, Height = 34, Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
-    btnDelete = new Button() { Text = "حذف", Left = 270, Top = 510, Width = 100, Height = 34, Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
-    btnSearch = new Button() { Text = "جستجو و فیلتر", Left = 380, Top = 510, Width = 120, Height = 34, Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
-    btnSaveExcel = new Button() { Text = "ذخیره در اکسل", Left = 510, Top = 510, Width = 120, Height = 34, Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
-    btnLoadExcel = new Button() { Text = "بارگذاری از اکسل", Left = 640, Top = 510, Width = 140, Height = 34, Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
+    // دکمه‌ها
+    btnAdd = new Button() { Text = "افزودن نامه جدید", Width = 140, Height = 34 };
+    btnEdit = new Button() { Text = "ویرایش", Width = 100, Height = 34 };
+    btnDelete = new Button() { Text = "حذف", Width = 100, Height = 34 };
+    btnSearch = new Button() { Text = "جستجو و فیلتر", Width = 120, Height = 34 };
+    btnSaveExcel = new Button() { Text = "ذخیره در اکسل", Width = 120, Height = 34 };
+    btnLoadExcel = new Button() { Text = "بارگذاری از اکسل", Width = 140, Height = 34 };
 
-    txtSearch = new TextBox() { Left = 800, Top = 510, Width = 170, Height = 34, PlaceholderText = "موضوع...", Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
-    txtSearchRecipient = new TextBox() { Left = 800, Top = 550, Width = 170, Height = 28, PlaceholderText = "گیرنده...", Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
-    cmbFilterStatus = new ComboBox() { Left = 640, Top = 550, Width = 140, Height = 28, DropDownStyle = ComboBoxStyle.DropDownList, Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
+    // فیلترها
+    txtSearch = new TextBox() { Width = 170, Height = 34, PlaceholderText = "موضوع..." };
+    txtSearchRecipient = new TextBox() { Width = 170, Height = 28, PlaceholderText = "گیرنده..." };
+    cmbFilterStatus = new ComboBox() { Width = 140, Height = 28, DropDownStyle = ComboBoxStyle.DropDownList };
     cmbFilterStatus.Items.AddRange(new string[] { "", "در حال پیگیری", "پاسخ داده شده", "پاسخ داده نشده" });
 
-    lblDateTime = new Label() { Left = 760, Top = 590, AutoSize = true, Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
-    lblDesigner = new Label() { Left = 12, Top = 590, AutoSize = true, Text = "طراحی توسط پیمان بطحایی لو", Anchor = AnchorStyles.Bottom | AnchorStyles.Left };
+    // لیبل‌ها
+    lblDateTime = new Label() { AutoSize = true };
+    lblDesigner = new Label() { AutoSize = true, Text = "طراحی توسط پیمان بطحایی لو" };
 
-    this.Controls.Add(btnAdd);
-    this.Controls.Add(btnEdit);
-    this.Controls.Add(btnDelete);
-    this.Controls.Add(btnSearch);
-    this.Controls.Add(btnSaveExcel);
-    this.Controls.Add(btnLoadExcel);
-    this.Controls.Add(txtSearch);
-    this.Controls.Add(txtSearchRecipient);
-    this.Controls.Add(cmbFilterStatus);
-    this.Controls.Add(lblDateTime);
-    this.Controls.Add(lblDesigner);
+    // پنل دکمه‌ها
+    var panelButtons = new FlowLayoutPanel()
+    {
+        FlowDirection = FlowDirection.RightToLeft,
+        Dock = DockStyle.Bottom,
+        Padding = new Padding(10),
+        AutoSize = true
+    };
+    panelButtons.Controls.AddRange(new Control[] {
+        btnAdd, btnEdit, btnDelete, btnSearch, btnSaveExcel, btnLoadExcel
+    });
 
+    // پنل فیلترها
+    var panelFilters = new FlowLayoutPanel()
+    {
+        FlowDirection = FlowDirection.RightToLeft,
+        Dock = DockStyle.Bottom,
+        Padding = new Padding(10),
+        AutoSize = true
+    };
+    panelFilters.Controls.AddRange(new Control[] {
+        txtSearch, txtSearchRecipient, cmbFilterStatus
+    });
+
+    // پنل لیبل‌ها
+    var panelLabels = new FlowLayoutPanel()
+    {
+        FlowDirection = FlowDirection.LeftToRight,
+        Dock = DockStyle.Bottom,
+        Padding = new Padding(10),
+        AutoSize = true
+    };
+    panelLabels.Controls.AddRange(new Control[] {
+        lblDesigner, lblDateTime
+    });
+
+    // افزودن به فرم
+    this.Controls.Add(panelButtons);
+    this.Controls.Add(panelFilters);
+    this.Controls.Add(panelLabels);
+
+    // رویدادها
     btnAdd.Click += btnAdd_Click;
     btnEdit.Click += btnEdit_Click;
     btnDelete.Click += btnDelete_Click;
