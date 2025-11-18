@@ -12,30 +12,29 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # 1. دریافت سورس و نصب دات‌نت
+      # 1. دریافت سورس
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. نصب دات‌نت 8
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      # -----------------------------------------------------------
-      # 2. حذف تمام خطاهای NU1301 با پاکسازی Source
-      # -----------------------------------------------------------
+      # 3. پاکسازی منابع NuGet (برای رفع NU1301)
       - name: Clean NuGet Sources
         run: dotnet nuget locals all --clear
 
-      # 3. بازیابی وابستگی‌ها (Restore)
+      # 4. بازیابی وابستگی‌ها
       - name: Restore dependencies
-        run: dotnet restore FinalDotnetCoreBuild.sln
-        
-      # 4. بیلد نهایی و انتشار (فقط برای net8.0-windows)
-      - name: Publish Release build (x86 Final)
-        run: dotnet publish FinalDotnetCoreBuild.csproj --configuration Release /p:TargetFramework=net8.0-windows /p:LangVersion=latest --output ${{ github.workspace }}/artifacts --runtime win-x86 --self-contained true --no-restore
+        run: dotnet restore FinalDotnetCoreBuild.csproj
 
-      # 5. آپلود خروجی به عنوان Artifact
+      # 5. بیلد و انتشار نهایی
+      - name: Publish Release build (x86 Final)
+        run: dotnet publish FinalDotnetCoreBuild.csproj --configuration Release --output ${{ github.workspace }}/artifacts --runtime win-x86 --self-contained true
+
+      # 6. آپلود خروجی به عنوان Artifact
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
