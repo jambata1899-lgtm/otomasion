@@ -32,7 +32,7 @@ namespace FinalDotnetCoreBuild
             _clockTimer.Start();
             UpdateClock();
 
-            _notifyTimer.Interval = 60 * 60 * 1000;
+            _notifyTimer.Interval = 60 * 60 * 1000; // هر یک ساعت
             _notifyTimer.Tick += (s, ev) => NotificationHelper.CheckAndNotify(_letters);
             _notifyTimer.Start();
 
@@ -82,5 +82,121 @@ namespace FinalDotnetCoreBuild
         private void ApplyRowColor(DataGridViewRow row, Letter l)
         {
             if (l.Status == LetterStatus.پاسخ_داده_شده)
+            {
                 row.DefaultCellStyle.BackColor = System.Drawing.Color.LightGreen;
-            else if (l.Status == Letter
+            }
+            else if (l.Status == LetterStatus.پاسخ_داده_نشده)
+            {
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightCoral;
+            }
+            else if (l.Status == LetterStatus.در_حال_پیگیری)
+            {
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightYellow;
+            }
+        }
+
+        private string ToPersianDateString(DateTime dt)
+        {
+            var y = _pc.GetYear(dt);
+            var m = _pc.GetMonth(dt).ToString("00");
+            var d = _pc.GetDayOfMonth(dt).ToString("00");
+            return $"{y}/{m}/{d}";
+        }
+
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+            var form = new LetterEditForm(null, _letters.Select(x => x.Recipient).Distinct().ToList());
+            if (form.ShowDialog() == DialogResult.OK)
+            {
+                var l = form.Letter;
+                l.DueDate = l.SentDate.AddDays(l.ResponseDays);
+                _letters.Add(l);
+
+                if (l.Attachments.Any())
+                {
+                    FileAttachmentHelper.CopyAttachments(l.RowNumber, l.Attachments);
+                    l.Attachments = FileAttachmentHelper.GetSavedAttachments(l.RowNumber);
+                }
+                RefreshGrid();
+            }
+        }
+
+        private void btnEdit_Click(object sender, EventArgs e)
+        {
+            if (dgvLetters.SelectedRows.Count == 0) return;
+            var rowNumber = dgvLetters.SelectedRows[0].Cells[0].Value.ToString();
+            var letter = _letters.FirstOrDefault(x => x.RowNumber == rowNumber);
+            if (letter == null) return;
+
+            var form = new LetterEditForm(letter, _letters.Select(x => x.Recipient).Distinct().ToList());
+            if (form.ShowDialog() == DialogResult.OK)
+            {
+                var l = form.Letter;
+                l.DueDate = l.SentDate.AddDays(l.ResponseDays);
+                RefreshGrid();
+            }
+        }
+
+        private void btnDelete_Click(object sender, EventArgs e)
+        {
+            if (dgvLetters.SelectedRows.Count == 0) return;
+            var rowNumber = dgvLetters.SelectedRows[0].Cells[0].Value.ToString();
+            var letter = _letters.FirstOrDefault(x => x.RowNumber == rowNumber);
+            if (letter == null) return;
+
+            if (MessageBox.Show("آیا مطمئن هستید؟", "حذف", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+                _letters.Remove(letter);
+                RefreshGrid();
+            }
+        }
+
+        private void btnSearch_Click(object sender, EventArgs e)
+        {
+            var kw = txtSearch.Text.Trim();
+            var recipient = txtSearchRecipient.Text.Trim();
+            var statusFilter = cmbFilterStatus.Text;
+            var filtered = _letters.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(kw)) filtered = filtered.Where(x => x.Subject.Contains(kw));
+            if (!string.IsNullOrWhiteSpace(recipient)) filtered = filtered.Where(x => x.Recipient.Contains(recipient));
+            if (!string.IsNullOrWhiteSpace(statusFilter))
+            {
+                if (Enum.TryParse<LetterStatus>(statusFilter, out var st))
+                    filtered = filtered.Where(x => x.Status == st);
+            }
+
+            dgvLetters.Rows.Clear();
+            foreach (var l in filtered)
+            {
+                var rowIdx = dgvLetters.Rows.Add(
+                    l.RowNumber,
+                    l.Subject,
+                    l.Recipient,
+                    l.LetterNumber,
+                    ToPersianDateString(l.SentDate),
+                    l.ResponseDays,
+                    ToPersianDateString(l.DueDate),
+                    l.Status.ToString(),
+                    l.Notes,
+                    string.Join(";", l.Attachments ?? new List<string>())
+                );
+                var row = dgvLetters.Rows[rowIdx];
+                ApplyRowColor(row, l);
+            }
+        }
+
+        private void btnSaveExcel_Click(object sender, EventArgs e)
+        {
+            ExcelHelper.Save(_letters);
+            MessageBox.Show("ذخیره انجام شد", "پیام");
+        }
+
+        private void btnLoadExcel_Click(object sender, EventArgs e)
+        {
+            _letters = ExcelHelper.Load();
+            RefreshGrid();
+            MessageBox.Show("بارگذاری انجام شد", "پیام");
+        }
+    }
+}
