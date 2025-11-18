@@ -17,8 +17,9 @@ namespace FinalDotnetCoreBuild.Helpers
             MessageBox.Show(message, title);
         }
 
-        public static void CheckAndNotify(IEnumerable<Letter> letters)
+        public static bool CheckAndNotify(IEnumerable<Letter> letters)
         {
+            bool changed = false;
             var now = DateTime.Now;
 
             foreach (var l in letters)
@@ -34,11 +35,17 @@ namespace FinalDotnetCoreBuild.Helpers
                 }
                 else if (daysLeft < 0)
                 {
-                    l.Status = LetterStatus.پاسخ_داده_نشده;
+                    if (l.Status != LetterStatus.پاسخ_داده_نشده)
+                    {
+                        l.Status = LetterStatus.پاسخ_داده_نشده;
+                        changed = true;
+                    }
                     Notify("نامه از سررسید گذشته",
                         $"{l.Subject} — سررسید {ToPersianDateString(l.DueDate)}");
                 }
             }
+
+            return changed;
         }
 
         private static string ToPersianDateString(DateTime dt)
