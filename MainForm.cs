@@ -83,9 +83,7 @@ namespace FinalDotnetCoreBuild
         private void btnEdit_Click(object sender, EventArgs e)
         {
             if (dgvLetters.SelectedRows.Count == 0) return;
-            var rowNumberText = dgvLetters.SelectedRows[0].Cells[0].Value?.ToString();
-            if (!int.TryParse(rowNumberText, out var rowNumber)) return;
-
+            var rowNumber = dgvLetters.SelectedRows[0].Cells[0].Value?.ToString();
             var letter = _letters.FirstOrDefault(x => x.RowNumber == rowNumber);
             if (letter == null) return;
 
@@ -107,9 +105,7 @@ namespace FinalDotnetCoreBuild
         private void btnDelete_Click(object sender, EventArgs e)
         {
             if (dgvLetters.SelectedRows.Count == 0) return;
-            var rowNumberText = dgvLetters.SelectedRows[0].Cells[0].Value?.ToString();
-            if (!int.TryParse(rowNumberText, out var rowNumber)) return;
-
+            var rowNumber = dgvLetters.SelectedRows[0].Cells[0].Value?.ToString();
             var letter = _letters.FirstOrDefault(x => x.RowNumber == rowNumber);
             if (letter == null) return;
 
@@ -136,7 +132,7 @@ namespace FinalDotnetCoreBuild
             foreach (var l in filtered)
             {
                 var rowIdx = dgvLetters.Rows.Add(
-                    l.RowNumber.ToString(),   // نمایش به صورت رشته
+                    l.RowNumber,   // رشته
                     l.Subject,
                     l.Recipient,
                     l.LetterNumber,
@@ -175,7 +171,7 @@ namespace FinalDotnetCoreBuild
             foreach (var l in _letters)
             {
                 var rowIdx = dgvLetters.Rows.Add(
-                    l.RowNumber.ToString(),   // نمایش به صورت رشته
+                    l.RowNumber,   // رشته
                     l.Subject,
                     l.Recipient,
                     l.LetterNumber,
