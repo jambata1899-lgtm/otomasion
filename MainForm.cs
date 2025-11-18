@@ -131,6 +131,112 @@ namespace FinalDotnetCoreBuild
             dgvLetters.Rows.Clear();
             foreach (var l in filtered)
             {
+                var values = new object[]
+                {
+                    (dgvLetters.Rows.Count + 1).ToString(), // شماره ردیف نمایشی
+                    l.Subject,
+                    l.Recipient,
+                    l.LetterNumber,
+                    ToPersianDateString(l.SentDate),
+                    l.ResponseDays,
+                    ToPersianDateString(l.DueDate),
+                    l.Status.ToString(),
+                    l.Notes,
+                    string.Join(";", l.Attachments ?? new List<string>())
+                };
+                var rowIdx = dgvLetters.Rows.Add(values);
+                var row = dgvLetters.Rows[rowIdx];
+                ApplyRowColor(row, l);
+            }
+        }
+
+        private void btnSaveExcel_Click(object sender, EventArgs e)
+        {
+            ExcelHelper.Save(_letters);
+            MessageBox.Show("ذخیره انجام شد", "پیام");
+        }
+
+        private void btnLoadExcel_Click(object sender, EventArgs e)
+        {
+            _letters = ExcelHelper.Load();
+            RefreshGrid();
+            MessageBox.Show("بارگذاری انجام شد", "پیام");
+        }
+
+        // ----------------------------
+        // متدهای کمکی
+        // ----------------------------
+
+        private void RefreshGrid()
+        {
+            dgvLetters.Rows.Clear();
+            foreach (var l in _letters)
+            {
+                var values = new object[]
+                {
+                    (dgvLetters.Rows.Count + 1).ToString(), // شماره ردیف نمایشی
+                    l.Subject,
+                    l.Recipient,
+                    l.LetterNumber,
+                    ToPersianDateString(l.SentDate),
+                    l.ResponseDays,
+                    ToPersianDateString(l.DueDate),
+                    l.Status.ToString(),
+                    l.Notes,
+                    string.Join(";", l.Attachments ?? new List<string>())
+                };
+                var rowIdx = dgvLetters.Rows.Add(values);
+                var row = dgvLetters.Rows[rowIdx];
+                ApplyRowColor(row, l);
+            }
+        }
+
+        private string ToPersianDateString(DateTime dt)
+        {
+            return $"{_pc.GetYear(dt)}/{_pc.GetMonth(dt):00}/{_pc.GetDayOfMonth(dt):00}";
+        }
+
+        private void ApplyRowColor(DataGridViewRow row, Letter l)
+        {
+            if (l.Status == LetterStatus.پاسخ_داده_شده)
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightGreen;
+            else if (l.Status == LetterStatus.پاسخ_داده_نشده)
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightCoral;
+            else if (l.Status == LetterStatus.در_حال_پیگیری)
+                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightYellow;
+        }
+    }
+}        }
+
+        private void btnDelete_Click(object sender, EventArgs e)
+        {
+            if (dgvLetters.SelectedRows.Count == 0) return;
+            var subject = dgvLetters.SelectedRows[0].Cells[1].Value?.ToString();
+            var letter = _letters.FirstOrDefault(x => x.Subject == subject);
+            if (letter == null) return;
+
+            if (MessageBox.Show("آیا مطمئن هستید؟", "حذف", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+                _letters.Remove(letter);
+                RefreshGrid();
+            }
+        }
+
+        private void btnSearch_Click(object sender, EventArgs e)
+        {
+            var kw = txtSearch.Text.Trim();
+            var recipient = txtSearchRecipient.Text.Trim();
+            var statusFilter = cmbFilterStatus.Text;
+            var filtered = _letters.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(kw)) filtered = filtered.Where(x => x.Subject.Contains(kw));
+            if (!string.IsNullOrWhiteSpace(recipient)) filtered = filtered.Where(x => x.Recipient.Contains(recipient));
+            if (!string.IsNullOrWhiteSpace(statusFilter) && Enum.TryParse<LetterStatus>(statusFilter, out var st))
+                filtered = filtered.Where(x => x.Status == st);
+
+            dgvLetters.Rows.Clear();
+            foreach (var l in filtered)
+            {
                 var rowIdx = dgvLetters.Rows.Add(
                     (dgvLetters.Rows.Count + 1).ToString(),   // شماره ردیف خودکار
                     l.Subject,
