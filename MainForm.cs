@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using FinalDotnetCoreBuild.Helpers;
@@ -33,10 +32,15 @@ namespace FinalDotnetCoreBuild
             UpdateClock();
 
             _notifyTimer.Interval = 60 * 60 * 1000; // هر یک ساعت
-            _notifyTimer.Tick += (s, ev) => NotificationHelper.CheckAndNotify(_letters);
+            _notifyTimer.Tick += (s, ev) =>
+            {
+                bool changed = NotificationHelper.CheckAndNotify(_letters);
+                if (changed) RefreshGrid();
+            };
             _notifyTimer.Start();
 
-            NotificationHelper.CheckAndNotify(_letters);
+            if (NotificationHelper.CheckAndNotify(_letters))
+                RefreshGrid();
         }
 
         private void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
@@ -82,17 +86,11 @@ namespace FinalDotnetCoreBuild
         private void ApplyRowColor(DataGridViewRow row, Letter l)
         {
             if (l.Status == LetterStatus.پاسخ_داده_شده)
-            {
                 row.DefaultCellStyle.BackColor = System.Drawing.Color.LightGreen;
-            }
             else if (l.Status == LetterStatus.پاسخ_داده_نشده)
-            {
                 row.DefaultCellStyle.BackColor = System.Drawing.Color.LightCoral;
-            }
             else if (l.Status == LetterStatus.در_حال_پیگیری)
-            {
                 row.DefaultCellStyle.BackColor = System.Drawing.Color.LightYellow;
-            }
         }
 
         private string ToPersianDateString(DateTime dt)
@@ -114,9 +112,8 @@ namespace FinalDotnetCoreBuild
 
                 if (l.Attachments.Any())
                 {
-                    int rowNum = int.Parse(l.RowNumber);
-                    FileAttachmentHelper.CopyAttachments(rowNum, l.Attachments);
-                    l.Attachments = FileAttachmentHelper.GetSavedAttachments(rowNum);
+                    FileAttachmentHelper.CopyAttachments(l.StableKey, l.Attachments);
+                    l.Attachments = FileAttachmentHelper.GetSavedAttachments(l.StableKey);
                 }
                 RefreshGrid();
             }
@@ -125,7 +122,7 @@ namespace FinalDotnetCoreBuild
         private void btnEdit_Click(object sender, EventArgs e)
         {
             if (dgvLetters.SelectedRows.Count == 0) return;
-            var rowNumber = dgvLetters.SelectedRows[0].Cells[0].Value.ToString();
+            var rowNumber = dgvLetters.SelectedRows[0].Cells[0].Value?.ToString();
             var letter = _letters.FirstOrDefault(x => x.RowNumber == rowNumber);
             if (letter == null) return;
 
@@ -137,9 +134,8 @@ namespace FinalDotnetCoreBuild
 
                 if (l.Attachments.Any())
                 {
-                    int rowNum = int.Parse(l.RowNumber);
-                    FileAttachmentHelper.CopyAttachments(rowNum, l.Attachments);
-                    l.Attachments = FileAttachmentHelper.GetSavedAttachments(rowNum);
+                    FileAttachmentHelper.CopyAttachments(l.StableKey, l.Attachments);
+                    l.Attachments = FileAttachmentHelper.GetSavedAttachments(l.StableKey);
                 }
                 RefreshGrid();
             }
@@ -148,7 +144,7 @@ namespace FinalDotnetCoreBuild
         private void btnDelete_Click(object sender, EventArgs e)
         {
             if (dgvLetters.SelectedRows.Count == 0) return;
-            var rowNumber = dgvLetters.SelectedRows[0].Cells[0].Value.ToString();
+            var rowNumber = dgvLetters.SelectedRows[0].Cells[0].Value?.ToString();
             var letter = _letters.FirstOrDefault(x => x.RowNumber == rowNumber);
             if (letter == null) return;
 
