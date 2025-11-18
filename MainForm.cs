@@ -9,13 +9,13 @@ namespace FinalDotnetCoreBuild
 {
     public partial class MainForm : Form
     {
-        private List<Letter> _letters = new List<Letter>();
+        // فیلدها
+        private readonly List<Letter> _letters = new List<Letter>();
+        private readonly System.Windows.Forms.Timer _clockTimer = new System.Windows.Forms.Timer();
+        private readonly System.Windows.Forms.Timer _notifyTimer = new System.Windows.Forms.Timer();
+        private readonly PersianCalendar _pc = new PersianCalendar();
 
-        private System.Windows.Forms.Timer _clockTimer = new System.Windows.Forms.Timer();
-        private System.Windows.Forms.Timer _notifyTimer = new System.Windows.Forms.Timer();
-
-        private PersianCalendar _pc = new PersianCalendar();
-
+        // سازنده
         public MainForm()
         {
             InitializeComponent();
@@ -23,6 +23,7 @@ namespace FinalDotnetCoreBuild
             FormClosing += MainForm_FormClosing;
         }
 
+        // رویدادهای فرم
         private void MainForm_Load(object? sender, EventArgs e)
         {
             _letters = ExcelHelper.Load();
@@ -50,6 +51,7 @@ namespace FinalDotnetCoreBuild
             ExcelHelper.Save(_letters);
         }
 
+        // ساعت بالای فرم
         private void UpdateClock()
         {
             var now = DateTime.Now;
@@ -60,10 +62,7 @@ namespace FinalDotnetCoreBuild
             lblDateTime.Text = $"{y}/{m}/{d} {time}";
         }
 
-        // ----------------------------
         // رویدادهای دکمه‌ها
-        // ----------------------------
-
         private void btnAdd_Click(object sender, EventArgs e)
         {
             var form = new LetterEditForm(null, _letters.Select(x => x.Recipient).Distinct().ToList());
@@ -85,8 +84,10 @@ namespace FinalDotnetCoreBuild
         private void btnEdit_Click(object sender, EventArgs e)
         {
             if (dgvLetters.SelectedRows.Count == 0) return;
-            var rowNumber = dgvLetters.SelectedRows[0].Cells[0].Value?.ToString();
-            var letter = _letters.FirstOrDefault(x => x.RowNumber.ToString() == rowNumber);
+            var rowNumberText = dgvLetters.SelectedRows[0].Cells[0].Value?.ToString();
+            if (!int.TryParse(rowNumberText, out var rowNumber)) return;
+
+            var letter = _letters.FirstOrDefault(x => x.RowNumber == rowNumber);
             if (letter == null) return;
 
             var form = new LetterEditForm(letter, _letters.Select(x => x.Recipient).Distinct().ToList());
@@ -107,115 +108,9 @@ namespace FinalDotnetCoreBuild
         private void btnDelete_Click(object sender, EventArgs e)
         {
             if (dgvLetters.SelectedRows.Count == 0) return;
-            var rowNumber = dgvLetters.SelectedRows[0].Cells[0].Value?.ToString();
-            var letter = _letters.FirstOrDefault(x => x.RowNumber.ToString() == rowNumber);
-            if (letter == null) return;
+            var rowNumberText = dgvLetters.SelectedRows[0].Cells[0].Value?.ToString();
+            if (!int.TryParse(rowNumberText, out var rowNumber)) return;
 
-            if (MessageBox.Show("آیا مطمئن هستید؟", "حذف", MessageBoxButtons.YesNo) == DialogResult.Yes)
-            {
-                _letters.Remove(letter);
-                RefreshGrid();
-            }
-        }
-
-        private void btnSearch_Click(object sender, EventArgs e)
-        {
-            var kw = txtSearch.Text.Trim();
-            var recipient = txtSearchRecipient.Text.Trim();
-            var statusFilter = cmbFilterStatus.Text;
-            var filtered = _letters.AsEnumerable();
-
-            if (!string.IsNullOrWhiteSpace(kw)) filtered = filtered.Where(x => x.Subject.Contains(kw));
-            if (!string.IsNullOrWhiteSpace(recipient)) filtered = filtered.Where(x => x.Recipient.Contains(recipient));
-            if (!string.IsNullOrWhiteSpace(statusFilter))
-            {
-                if (Enum.TryParse<LetterStatus>(statusFilter, out var st))
-                    filtered = filtered.Where(x => x.Status == st);
-            }
-
-            dgvLetters.Rows.Clear();
-            foreach (var l in filtered)
-            {
-                var rowIdx = dgvLetters.Rows.Add(
-                    l.RowNumber.ToString(),   // تبدیل به رشته برای نمایش
-                    l.Subject,
-                    l.Recipient,
-                    l.LetterNumber,
-                    ToPersianDateString(l.SentDate),
-                    l.ResponseDays,
-                    ToPersianDateString(l.DueDate),
-                    l.Status.ToString(),
-                    l.Notes,
-                    string.Join(";", l.Attachments ?? new List<string>())
-                );
-                var row = dgvLetters.Rows[rowIdx];
-                ApplyRowColor(row, l);
-            }
-        }
-
-        private void btnSaveExcel_Click(object sender, EventArgs e)
-        {
-            ExcelHelper.Save(_letters);
-            MessageBox.Show("ذخیره انجام شد", "پیام");
-        }
-
-        private void btnLoadExcel_Click(object sender, EventArgs e)
-        {
-            _letters = ExcelHelper.Load();
-            RefreshGrid();
-            MessageBox.Show("بارگذاری انجام شد", "پیام");
-        }
-
-        // ----------------------------
-        // متدهای کمکی
-        // ----------------------------
-
-        private void RefreshGrid()
-        {
-            dgvLetters.Rows.Clear();
-            foreach (var l in _letters)
-            {
-                var rowIdx = dgvLetters.Rows.Add(
-                    l.RowNumber.ToString(),   // تبدیل به رشته برای نمایش
-                    l.Subject,
-                    l.Recipient,
-                    l.LetterNumber,
-                    ToPersianDateString(l.SentDate),
-                    l.ResponseDays,
-                    ToPersianDateString(l.DueDate),
-                    l.Status.ToString(),
-                    l.Notes,
-                    string.Join(";", l.Attachments ?? new List<string>())
-                );
-                var row = dgvLetters.Rows[rowIdx];
-                ApplyRowColor(row, l);
-            }
-        }
-
-        private string ToPersianDateString(DateTime dt)
-        {
-            return $"{_pc.GetYear(dt)}/{_pc.GetMonth(dt):00}/{_pc.GetDayOfMonth(dt):00}";
-        }
-
-        private void ApplyRowColor(DataGridViewRow row, Letter l)
-        {
-            if (l.Status == LetterStatus.پاسخ_داده_شده)
-                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightGreen;
-            else if (l.Status == LetterStatus.پاسخ_داده_نشده)
-                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightCoral;
-            else if (l.Status == LetterStatus.در_حال_پیگیری)
-                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightYellow;
-        }
-    }
-}                }
-                RefreshGrid();
-            }
-        }
-
-        private void btnDelete_Click(object sender, EventArgs e)
-        {
-            if (dgvLetters.SelectedRows.Count == 0) return;
-            var rowNumber = dgvLetters.SelectedRows[0].Cells[0].Value?.ToString();
             var letter = _letters.FirstOrDefault(x => x.RowNumber == rowNumber);
             if (letter == null) return;
 
@@ -235,17 +130,14 @@ namespace FinalDotnetCoreBuild
 
             if (!string.IsNullOrWhiteSpace(kw)) filtered = filtered.Where(x => x.Subject.Contains(kw));
             if (!string.IsNullOrWhiteSpace(recipient)) filtered = filtered.Where(x => x.Recipient.Contains(recipient));
-            if (!string.IsNullOrWhiteSpace(statusFilter))
-            {
-                if (Enum.TryParse<LetterStatus>(statusFilter, out var st))
-                    filtered = filtered.Where(x => x.Status == st);
-            }
+            if (!string.IsNullOrWhiteSpace(statusFilter) && Enum.TryParse<LetterStatus>(statusFilter, out var st))
+                filtered = filtered.Where(x => x.Status == st);
 
             dgvLetters.Rows.Clear();
             foreach (var l in filtered)
             {
                 var rowIdx = dgvLetters.Rows.Add(
-                    l.RowNumber,
+                    l.RowNumber.ToString(),               // نمایش به صورت رشته
                     l.Subject,
                     l.Recipient,
                     l.LetterNumber,
@@ -274,17 +166,14 @@ namespace FinalDotnetCoreBuild
             MessageBox.Show("بارگذاری انجام شد", "پیام");
         }
 
-        // ----------------------------
         // متدهای کمکی
-        // ----------------------------
-
         private void RefreshGrid()
         {
             dgvLetters.Rows.Clear();
             foreach (var l in _letters)
             {
                 var rowIdx = dgvLetters.Rows.Add(
-                    l.RowNumber,
+                    l.RowNumber.ToString(),               // نمایش به صورت رشته
                     l.Subject,
                     l.Recipient,
                     l.LetterNumber,
